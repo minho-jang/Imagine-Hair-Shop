@@ -836,6 +836,7 @@ public class CameraFragment extends Fragment
 
                     // 명시적 인텐트. 포토뷰로 연결.
                     Intent photoViewIntent = new Intent(getActivity(), PhotoViewActivity.class);
+                    photoViewIntent.putExtra("PhotoUri", mFile.toURI().toString());
                     startActivity(photoViewIntent);
                 }
             };
