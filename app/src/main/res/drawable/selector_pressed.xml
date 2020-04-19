@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:state_selected="true">
+
+        <!--image대신 직접 selector를 그리겠다고 선언한다. -->
+        <shape android:shape="rectangle">
+
+            <solid android:color="@color/colorMain" />
+
+        </shape>
+    </item>
+
+    <!--위와 동일하다.
+    -->
+    <item
+        android:state_selected="false"
+        android:top="1dp"
+        android:bottom="1dp"
+        android:left="1dp"
+        android:right="1dp">
+        <shape android:shape="rectangle">
+
+            <solid android:color="@color/colorWhite" />
+
+        </shape>
+    </item>
+</selector>
