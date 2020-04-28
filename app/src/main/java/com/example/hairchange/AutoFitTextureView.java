@@ -2,7 +2,9 @@ package com.example.hairchange;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.TextureView;
+import android.view.ViewGroup;
 
 /**
  * A {@link TextureView} that can be adjusted to a specified aspect ratio.
@@ -11,6 +13,11 @@ public class AutoFitTextureView extends TextureView {
 
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
+    private static final String TAG = "AutoFitTextureView";
+
+    // minho {
+    private boolean mWithMargin = false;
+    // }
 
     public AutoFitTextureView(Context context) {
         this(context, null);
@@ -46,6 +53,19 @@ public class AutoFitTextureView extends TextureView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
+        Log.d(TAG, "width : " + width + "/height : " + height);
+        int margin = (height - width);
+
+        if(!mWithMargin) {
+            mWithMargin = true;
+            ViewGroup.MarginLayoutParams margins = ViewGroup.MarginLayoutParams.class.cast(getLayoutParams());
+            margins.topMargin = 0;
+            margins.bottomMargin = -margin;
+            margins.leftMargin = 0;
+            margins.rightMargin = 0;
+            setLayoutParams(margins);
+        }
+
         if (0 == mRatioWidth || 0 == mRatioHeight) {
             setMeasuredDimension(width, height);
         } else {
@@ -56,5 +76,4 @@ public class AutoFitTextureView extends TextureView {
             }
         }
     }
-
 }

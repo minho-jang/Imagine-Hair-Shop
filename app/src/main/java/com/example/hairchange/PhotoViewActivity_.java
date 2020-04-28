@@ -1,49 +1,55 @@
 package com.example.hairchange;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
-import java.util.ArrayList;
 
-public class PhotoViewActivity extends AppCompatActivity {
+public class PhotoViewActivity_ extends AppCompatActivity {
     private static final String TAG = "PhotoViewActivity";
+    private static final int CROP_IMAGE_REQUEST_CODE = 1;
+    private static final int REQUEST_EXTERNAL_STORAGE_PERMISSION = 1;
 
     private ImageItemAdapter adapter;
     private RecyclerView recyclerView;
     private Button man;
     private Button woman;
     private Button theOthers;
+    private ImageView mPhotoImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photoview);
+        Log.d(TAG, "onCreate...");
 
         // get Intent data
         String photoUri = getIntent().getExtras().getString("PhotoUri");
-        Log.d(TAG, "photoUri : " + photoUri);
 
-        getImageFromURI(photoUri);  // uri 로 부터 이미지가져오기
+        // Crop Intent
+        Intent cropIntent = new Intent("com.android.camera.action.CROP");
+        cropIntent.setDataAndType(Uri.parse(photoUri.replace("file:", "")), "image/*");
+        cropIntent.putExtra("outputX", 1024);
+        cropIntent.putExtra("outputY", 1024);
+        cropIntent.putExtra("aspectX", 1);
+        cropIntent.putExtra("aspectY", 1);
+        cropIntent.putExtra("scale", true);
+        cropIntent.putExtra("return-data", true);
+        startActivityForResult(cropIntent, CROP_IMAGE_REQUEST_CODE);
+
+        mPhotoImageView = (ImageView)findViewById(R.id.photo);
 
         // Set Hair style
         man = findViewById(R.id.man);
@@ -62,13 +68,40 @@ public class PhotoViewActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+
+        if (requestCode == CROP_IMAGE_REQUEST_CODE) {
+            final Bundle extras = data.getExtras();
+            if (extras != null) {
+                Bitmap photo = extras.getParcelable("data");
+                mPhotoImageView.setImageBitmap(photo);
+            }
+        }
+    }
+
     private void getImageFromURI(String photoUri) {
         ImageView photo = (ImageView)findViewById(R.id.photo);
-        photoUri = photoUri.replace("file://", "");
+        photoUri = photoUri.replace("file:", "");
         File imgFile = new File(photoUri);
-        if (imgFile.exists()) {
+        Log.i("imgFile", imgFile.toString());
+        if(imgFile.exists()) {
             Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             Log.i("abPath", bitmap.toString());
+
+            // 이미지 너비, 높이 같게 보여주고, 90도 회전 및 좌우 반전.
+            Log.d(TAG, "bitmap width: " + bitmap.getWidth() + " bitmap height: " + bitmap.getHeight());
+            int edge = bitmap.getWidth() > bitmap.getHeight() ? bitmap.getHeight() : bitmap.getWidth();
+            Matrix matrix = new Matrix();
+            matrix.preRotate(90);
+            matrix.preScale(-1, 1);
+            bitmap = Bitmap.createBitmap(bitmap, bitmap.getWidth()-bitmap.getHeight(), 0, edge, edge, matrix, true);
+
             photo.setImageBitmap(bitmap);
         }
     }
