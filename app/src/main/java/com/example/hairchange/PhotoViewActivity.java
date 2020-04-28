@@ -1,6 +1,7 @@
 package com.example.hairchange;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.gesture.Gesture;
 import android.graphics.Bitmap;
@@ -9,9 +10,11 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.GestureDetector;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -29,20 +32,37 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.github.chrisbanes.photoview.PhotoView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PhotoViewActivity extends AppCompatActivity {
     private static final String TAG = "PhotoViewActivity";
 
+    private RequestQueue queue;
+    private ProgressDialog progressDialog;
+    private Bitmap originImage;
+
     private ImageItemAdapter adapter;
     private RecyclerView recyclerView;
+    private ImageView photo;
     private ImageView sticker;
     private Button man;
     private Button woman;
     private Button theOthers;
+    private BottomNavigationView bottomNavigationView;
 
     private ScaleGestureDetector mScaleGestureDetector;
     private float mScaleFactor = 1.0f;
@@ -52,13 +72,9 @@ public class PhotoViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photoview);
 
-        // get Intent data
         String photoUri = getIntent().getExtras().getString("PhotoUri");
-        Log.d(TAG, "photoUri : " + photoUri);
-
         getImageFromURI(photoUri);  // uri 로 부터 이미지가져오기
 
-        // Set Hair style
         man = findViewById(R.id.man);
         woman = findViewById(R.id.woman);
         theOthers = findViewById(R.id.the_others);
@@ -124,6 +140,26 @@ public class PhotoViewActivity extends AppCompatActivity {
         };
         //sticker.setOnTouchListener(mTouchListener);
 
+        // minho {
+        // Instantiate the RequestQueue.
+        queue = Volley.newRequestQueue(this);
+
+        bottomNavigationView = findViewById(R.id.bottomNav);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.menu_send: {
+                        // TODO flask server url
+                        String url = "https://postman-echo.com/post";
+                        httpPostReqeust(url, originImage);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+        // minho }
     }
 
     @Override
@@ -144,16 +180,16 @@ public class PhotoViewActivity extends AppCompatActivity {
     }
 
     private void getImageFromURI(String photoUri) {
-        ImageView photo = (ImageView)findViewById(R.id.photo);
+        photo = findViewById(R.id.photo);
         photoUri = photoUri.replace("file://", "");
         File imgFile = new File(photoUri);
         if (imgFile.exists()) {
-            Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            Log.i("abPath", bitmap.toString());
-            photo.setImageBitmap(bitmap);
+            originImage = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            Log.d(TAG, originImage.toString());
+            Log.d(TAG, imgFile.getAbsolutePath());
+            Log.d(TAG, photo.toString());
+            photo.setImageBitmap(originImage);
         }
-
-
     }
 
     public void btnClick(View view) {
@@ -187,5 +223,67 @@ public class PhotoViewActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
+    protected void httpPostReqeust(String url, Bitmap bitmap) {
+        loading("Image uploading...");
 
+        // Converting image to base64 string
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        final String imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.POST,
+                url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        Log.d(TAG, response);
+
+                        Toast.makeText(getApplicationContext(), "Image upload success", Toast.LENGTH_SHORT).show();
+                        loadingEnd();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Image upload error", Toast.LENGTH_SHORT).show();
+                error.printStackTrace();
+                loadingEnd();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("image", imageString);
+                return params;
+            }
+        };
+
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+    }
+
+    private void loading(final String msg) {
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        progressDialog = new ProgressDialog(PhotoViewActivity.this);
+                        progressDialog.setIndeterminate(true);
+                        progressDialog.setMessage(msg);
+                        progressDialog.show();
+                    }
+                }, 0);
+    }
+
+    private void loadingEnd() {
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                }, 0);
+    }
 }

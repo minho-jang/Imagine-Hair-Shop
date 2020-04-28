@@ -3,7 +3,7 @@
 
     <item
 
-        android:id="@+id/back_icon"
+        android:id="@+id/menu_send"
         android:title="send"
         android:icon="@drawable/ic_menu_send" />
 
