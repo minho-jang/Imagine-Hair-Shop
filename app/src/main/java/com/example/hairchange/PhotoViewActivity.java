@@ -6,7 +6,13 @@ import android.content.Intent;
 import android.gesture.Gesture;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,6 +39,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -41,6 +48,8 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -72,6 +81,9 @@ public class PhotoViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photoview);
 
+        photo = findViewById(R.id.photo);
+        sticker = findViewById(R.id.sticker);
+
         String photoUri = getIntent().getExtras().getString("PhotoUri");
         getImageFromURI(photoUri);  // uri 로 부터 이미지가져오기
 
@@ -90,7 +102,6 @@ public class PhotoViewActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
 
-        sticker = findViewById(R.id.sticker);
         mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
         final GestureDetector.SimpleOnGestureListener mGestureListener = new GestureDetector.SimpleOnGestureListener() {
             @Override
@@ -150,9 +161,22 @@ public class PhotoViewActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu_send: {
-                        // TODO flask server url
-                        String url = "https://postman-echo.com/post";
-                        httpPostReqeust(url, originImage);
+
+                        Bitmap background = ((BitmapDrawable) photo.getDrawable()).getBitmap();;
+                        Bitmap hair = ((BitmapDrawable) sticker.getDrawable()).getBitmap();
+                        Rect hairRect = new Rect();
+                        sticker.getHitRect(hairRect);
+
+                        Bitmap bitmapOverlay = Bitmap.createBitmap(background.getWidth(), background.getHeight(), background.getConfig());
+                        Canvas canvas = new Canvas(bitmapOverlay);
+                        canvas.drawBitmap(background, new Matrix(), null);
+                        canvas.drawBitmap(hair, null, hairRect, null);
+
+                        photo.setImageBitmap(bitmapOverlay);
+
+                        String imageId = IMAGE_ID;
+                        String url = SERVER_BASE_URL + imageId;
+                        httpPostReqeust(url, bitmapOverlay);
                         return true;
                     }
                 }
@@ -180,7 +204,6 @@ public class PhotoViewActivity extends AppCompatActivity {
     }
 
     private void getImageFromURI(String photoUri) {
-        photo = findViewById(R.id.photo);
         photoUri = photoUri.replace("file://", "");
         File imgFile = new File(photoUri);
         if (imgFile.exists()) {
@@ -223,6 +246,7 @@ public class PhotoViewActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
+    // minho {
     protected void httpPostReqeust(String url, Bitmap bitmap) {
         loading("Image uploading...");
 
@@ -239,8 +263,12 @@ public class PhotoViewActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
                         Log.d(TAG, response);
+
+                        // response to Bitmap
+                        final String resultString = response;
+                        byte[] imageBytes = Base64.decode(resultString, 0);
+                        Bitmap resultBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
 
                         Toast.makeText(getApplicationContext(), "Image upload success", Toast.LENGTH_SHORT).show();
                         loadingEnd();
@@ -260,6 +288,11 @@ public class PhotoViewActivity extends AppCompatActivity {
                 return params;
             }
         };
+
+//        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+//                300000,         // 5 min
+//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
@@ -286,4 +319,5 @@ public class PhotoViewActivity extends AppCompatActivity {
                     }
                 }, 0);
     }
+    // minho }
 }

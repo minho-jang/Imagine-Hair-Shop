@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
     private void cropImage(Uri inUri) {
         CropImage.activity(inUri)
                 .setMinCropResultSize(1024,1024)
+                .setMaxCropResultSize(1024,1024)
                 .setAspectRatio(1,1)
                 .start(this);
     }
