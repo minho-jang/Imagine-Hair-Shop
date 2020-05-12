@@ -25,6 +25,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -53,6 +54,9 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,6 +84,7 @@ public class PhotoViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photoview);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         photo = findViewById(R.id.photo);
         sticker = findViewById(R.id.sticker);
@@ -171,8 +176,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                         Canvas canvas = new Canvas(bitmapOverlay);
                         canvas.drawBitmap(background, new Matrix(), null);
                         canvas.drawBitmap(hair, null, hairRect, null);
-
-                        photo.setImageBitmap(bitmapOverlay);
+//                        photo.setImageBitmap(bitmapOverlay);
 
                         String imageId = IMAGE_ID;
                         String url = SERVER_BASE_URL + imageId;
@@ -184,6 +188,36 @@ public class PhotoViewActivity extends AppCompatActivity {
             }
         });
         // minho }
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "onStart()");
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "onResume()");
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "onPause()");
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "onStop()");
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy()");
+        super.onDestroy();
     }
 
     @Override
@@ -270,8 +304,27 @@ public class PhotoViewActivity extends AppCompatActivity {
                         byte[] imageBytes = Base64.decode(resultString, 0);
                         Bitmap resultBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
 
+                        long now = System.currentTimeMillis();
+                        String filename = now + "result.png";
+                        File file = new File(Environment.getExternalStorageDirectory() + filename);
+                        FileOutputStream fOut = null;
+                        try {
+                            fOut = new FileOutputStream(file);
+                            resultBitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
+                            fOut.flush();
+                            fOut.close();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                         Toast.makeText(getApplicationContext(), "Image upload success", Toast.LENGTH_SHORT).show();
                         loadingEnd();
+
+                        Intent resultIntent = new Intent(getApplication(), ResultActivity.class);
+                        resultIntent.putExtra("imageFileName", filename);
+                        startActivity(resultIntent);
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -289,10 +342,10 @@ public class PhotoViewActivity extends AppCompatActivity {
             }
         };
 
-//        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-//                300000,         // 5 min
-//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                600000,         // 10 min ??
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
