@@ -14,9 +14,12 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
@@ -30,10 +33,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_FROM_CAMERA = 0;
     private static final int PICK_FROM_GALLERY = 1;
 
-    private Button btnCamera;
-    private Button btnFile;
-    private Button btnLookBook;
 
+    private Animation fab_open, fab_close;
+    private Boolean isFabOpen = false;
+    private FloatingActionButton fab, fab1, fab2;
     // temporary photo uri
     private Uri mImageCaptureUri;
 
@@ -42,7 +45,82 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btnCamera = findViewById(R.id.btn_camera);
+        fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
+        fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab1 = (FloatingActionButton) findViewById(R.id.fab1);
+        fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+
+        FloatingActionButton.OnClickListener onClickListener = new FloatingActionButton.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int id = v.getId();
+                Intent intent;
+                switch(id) {
+                    case R.id.fab:
+                        anim();
+                        break;
+                    case R.id.fab1:
+                        anim();
+
+                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
+                                != PackageManager.PERMISSION_GRANTED) {
+                            // Permission is not granted. So request the permission
+                            permissionCheck_Camera();
+                            return;
+                        }
+
+                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                        // Create temporary file to hold user's image
+                        String url = "tmp_" + System.currentTimeMillis() + ".jpg";
+                        mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", new File(Environment.getExternalStorageDirectory(), url));
+                        intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
+                        startActivityForResult(intent, PICK_FROM_CAMERA);
+
+                        break;
+                    case R.id.fab2:
+                        anim();
+
+                        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                != PackageManager.PERMISSION_GRANTED) {
+                            // Permission is not granted. So request the permission
+                            permissionCheck_WriteExternalStorage();
+                            return;
+                        }
+
+                        // Call user's device gallery
+                        intent = new Intent(Intent.ACTION_PICK);
+                        intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
+                        startActivityForResult(intent, PICK_FROM_GALLERY);
+                }
+            }
+
+            public void anim() {
+                if(isFabOpen) {
+                    fab1.startAnimation(fab_close);
+                    fab2.startAnimation(fab_close);
+                    fab1.setClickable(false);
+                    fab2.setClickable(false);
+                    isFabOpen = false;
+                } else {
+                    fab1.startAnimation(fab_open);
+                    fab2.startAnimation(fab_open);
+                    fab1.setClickable(true);
+                    fab2.setClickable(true);
+                    isFabOpen = true;
+                }
+            }
+        };
+
+        fab.setOnClickListener(onClickListener);
+        fab1.setOnClickListener(onClickListener);
+        fab2.setOnClickListener(onClickListener);
+
+        final Button btnCamera = findViewById(R.id.btn_camera);
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -172,4 +250,6 @@ public class MainActivity extends AppCompatActivity {
                 .setAspectRatio(1,1)
                 .start(this);
     }
+
+
 }
