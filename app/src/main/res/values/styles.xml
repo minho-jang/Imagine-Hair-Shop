@@ -3,10 +3,13 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-
+        <item name="android:background">@color/color2</item>
+        <item name="buttonStyle">@style/button</item>
+<!--        타이틀바-->
+        <item name="colorPrimary">@color/color2</item>
+<!--        상태바-->
+        <item name="colorPrimaryDark">@color/color2</item>
+        <item name="fontFamily">@font/font_main</item>
         <!--No Title Bar-->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -14,21 +17,35 @@
     </style>
 
     <style name="Bottom_nav" parent="BottomTheme">
-        <item name="android:textColorPrimary">@color/colorMain</item>
+        <item name="android:textColorPrimary">@color/color10</item>
 
-        <item name="android:textColorSecondary">@color/colorMain</item>
-        <item name="android:textColor">@color/colorMain</item>
-        <item name="android:colorControlNormal">@color/colorMain</item>
-        <item name="android:colorControlHighlight">@color/colorMain</item>
+        <item name="android:textColorSecondary">@color/color10</item>
+        <item name="android:textColor">@color/color10</item>
+        <item name="android:colorControlNormal">@color/color5</item>
+        <item name="android:colorControlHighlight">@color/color5</item>
     </style>
 
     <style name="BottomTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorMain</item>
+        <item name="colorPrimary">@color/color5</item>
         <!-- <item name="colorPrimaryDark">@color/colorPrimaryDark</item> -->
         <!-- <item name="colorPrimary">@color/colorWhite</item> -->
-        <item name="colorPrimaryDark">@color/colorMain</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/color5</item>
+        <item name="colorAccent">@color/color5</item>
 
+    </style>
+
+    <style name="button" parent="@android:style/Widget.Button">
+        <item name="android:gravity">center_vertical|center_horizontal</item>
+        <item name="android:textColor">@color/color10</item>
+        <item name="android:shadowColor">@color/colorPressed</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">-1</item>
+        <item name="android:shadowRadius">0.2</item>
+        <item name="android:font">@font/font_main</item>
+        <item name="android:textSize">20dip</item>
+        <item name="android:background">@drawable/button</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
     </style>
 </resources>
