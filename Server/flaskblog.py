@@ -14,6 +14,9 @@ from skimage.draw import polygon
 from scipy.spatial import ConvexHull
 from celery import Celery
 
+# celery 동작 명령어
+# celery worker -A flaskblog.celery --loglevel=INFO --pool=solo
+
 def make_celery(app):
     celery = Celery(
         "flaskblog",
@@ -107,20 +110,6 @@ def f1():
 
 @app.route('/photo/<img_name>', methods=['POST'])
 def start_synthesis(img_name):
-    result = execute_gpu.delay(img_name)
-    print('1111')
-    return 'plz'
-
-@app.route('/result/<img_name>', methods=['POST'])
-def get_result(img_name):
-    print('result is returned')
-
-@celery.task
-def execute_gpu(img_name):
-    client = SSHClient()
-    client.load_system_host_keys()
-    client.connect(host, username=user, port=port, password=password)
-
     ############################################################
     # b64_string = request.form.get('image')
 
@@ -132,6 +121,27 @@ def execute_gpu(img_name):
     #     f.write(base64.b64decode(b64_string))
     #
     ############################################################
+
+
+    task = execute_gpu.delay(img_name)
+    print('1111')
+    return task.id
+
+@app.route('/result/<img_name>', methods=['POST','GET'])
+def get_result(img_name):
+    if os.path.isfile(os.path.join(result_img_dir, img_name+'_result.png')):
+        with open(os.path.join(result_img_dir, img_name+'_result.png'), "rb") as img:
+            enc_str = base64.b64encode(img.read())
+        print('task completed')
+        return enc_str
+    print('task not completed')
+    return '0'
+
+@celery.task
+def execute_gpu(img_name):
+    client = SSHClient()
+    client.load_system_host_keys()
+    client.connect(host, username=user, port=port, password=password)
 
     # 테스트 코드
     ############################################################
@@ -147,7 +157,7 @@ def execute_gpu(img_name):
     start = time.time()
 
     sftp = client.open_sftp()
-    sftp.put(source_img, STYLEGAN_FFHQ_DIR + source_img)
+    sftp.put(source_img, STYLEGAN_FFHQ_DIR + img_name)
 
     stdin, stdout, stderr = client.exec_command(RUN_COMMAND)
 
@@ -165,9 +175,6 @@ def execute_gpu(img_name):
 
     client.close()
     sftp.close()
-
-    with open(result_img, "rb") as img:
-        enc_str = base64.b64encode(img.read())
 
     print('time ****', time.time() - start)
 
