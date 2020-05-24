@@ -1,7 +1,7 @@
 # -*- encoding: utf8 -*-
 import base64
 from flask import Flask, render_template, send_file
-from flask_restful import Api
+from flask_restful import Api, request
 from paramiko import SSHClient
 import time
 import os
@@ -108,23 +108,23 @@ def f1():
     # return send_file('result2.png', mimetype='image/png')
     return render_template('index.html')
 
-@app.route('/photo/<img_name>', methods=['POST'])
+@app.route('/start/<img_name>', methods=['POST'])
 def start_synthesis(img_name):
-    ############################################################
-    # b64_string = request.form.get('image')
 
-    # source_img = os.path.join(source_img_dir, img_name + '.jpg')
-    # target_img = os.path.join(target_img_dir, img_name + '_target.jpg')
-    # result_img = os.path.join(result_img_dir, img_name + '_result.jpg')
+    ## 실제 코드, 테스트할 때는 주석 처리
+    ###########################################################
+    b64_string = request.form.get('image')
 
-    # with open(source_img, "wb") as f:
-    #     f.write(base64.b64decode(b64_string))
-    #
-    ############################################################
+    source_img = os.path.join(source_img_dir, img_name + '.jpg')
+
+    with open(source_img, "wb") as f:
+        f.write(base64.b64decode(b64_string))
+
+    ###########################################################
 
 
     task = execute_gpu.delay(img_name)
-    print('1111')
+    print('post return ', task.id)
     return task.id
 
 @app.route('/result/<img_name>', methods=['POST','GET'])
@@ -133,6 +133,7 @@ def get_result(img_name):
         with open(os.path.join(result_img_dir, img_name+'_result.png'), "rb") as img:
             enc_str = base64.b64encode(img.read())
         print('task completed')
+        os.remove(os.path.join(result_img_dir, img_name+'_result.png'))
         return enc_str
     print('task not completed')
     return '0'
@@ -143,14 +144,9 @@ def execute_gpu(img_name):
     client.load_system_host_keys()
     client.connect(host, username=user, port=port, password=password)
 
-    # 테스트 코드
-    ############################################################
-
-    source_img = os.path.join(source_img_dir, img_name + '.png')
+    source_img = os.path.join(source_img_dir, img_name + '.jpg')
     target_img = os.path.join(target_img_dir, img_name + '_target.png')
     result_img = os.path.join(result_img_dir, img_name + '_result.png')
-
-    #################################################################
 
     #### GPU서버에 사진 요청 ####
 
