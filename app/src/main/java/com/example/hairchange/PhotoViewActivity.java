@@ -1,41 +1,29 @@
 package com.example.hairchange;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.gesture.Gesture;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.media.Image;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
 import android.util.Base64;
 import android.util.Log;
-import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -47,17 +35,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.github.chrisbanes.photoview.PhotoView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,6 +60,8 @@ public class PhotoViewActivity extends AppCompatActivity {
 
     private ScaleGestureDetector mScaleGestureDetector;
     private float mScaleFactor = 1.0f;
+
+    private String imageId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +103,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                 }
                 sticker.setX(sticker.getX() + e2.getX() - e1.getX());
                 sticker.setY(sticker.getY() + e2.getY() - e1.getY());
-                Log.i("action", "onScroll");
+                Log.i("action", "onScroll: x: " + sticker.getX() + " y: " + sticker.getY());
                 return true;
             }
         };
@@ -166,8 +149,7 @@ public class PhotoViewActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu_send: {
-
-                        Bitmap background = ((BitmapDrawable) photo.getDrawable()).getBitmap();;
+                        Bitmap background = ((BitmapDrawable) photo.getDrawable()).getBitmap();
                         Bitmap hair = ((BitmapDrawable) sticker.getDrawable()).getBitmap();
                         Rect hairRect = new Rect();
                         sticker.getHitRect(hairRect);
@@ -176,11 +158,14 @@ public class PhotoViewActivity extends AppCompatActivity {
                         Canvas canvas = new Canvas(bitmapOverlay);
                         canvas.drawBitmap(background, new Matrix(), null);
                         canvas.drawBitmap(hair, null, hairRect, null);
+
+                        // ISSUE 약간 sticker가 오른쪽 으로 감 (only woman hair)
 //                        photo.setImageBitmap(bitmapOverlay);
 
                         String imageId = IMAGE_ID;
                         String url = SERVER_BASE_URL + imageId;
                         httpPostReqeust(url, bitmapOverlay);
+
                         return true;
                     }
                 }
@@ -284,47 +269,36 @@ public class PhotoViewActivity extends AppCompatActivity {
     protected void httpPostReqeust(String url, Bitmap bitmap) {
         loading("Image uploading...");
 
-        // Converting image to base64 string
+        // Converting bitmap image to base64 string
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] imageBytes = baos.toByteArray();
         final String imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-        // Request a string response from the provided URL.
+        // Request : the image upload
+        // Response: just OK.
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
                 url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        Log.d(TAG, response);
-
-                        // response to Bitmap
-                        final String resultString = response;
-                        byte[] imageBytes = Base64.decode(resultString, 0);
-                        Bitmap resultBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-
-                        long now = System.currentTimeMillis();
-                        String filename = now + "result.png";
-                        File file = new File(Environment.getExternalStorageDirectory() + filename);
-                        FileOutputStream fOut = null;
-                        try {
-                            fOut = new FileOutputStream(file);
-                            resultBitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
-                            fOut.flush();
-                            fOut.close();
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        Log.d(TAG, "response: " + response);
 
                         Toast.makeText(getApplicationContext(), "Image upload success", Toast.LENGTH_SHORT).show();
                         loadingEnd();
 
-                        Intent resultIntent = new Intent(getApplication(), ResultActivity.class);
-                        resultIntent.putExtra("imageFileName", filename);
-                        startActivity(resultIntent);
+                        // 이미지가 업로드 되면
+                        // 서버는 바로 이미지 처리를 시작하며
+                        // 안드로이드는 서비스(백그라운드) 형태로 처리가 끝났는지 확인한다.
+                        Intent intentService = new Intent(PhotoViewActivity.this, ImageProcessCheckService.class);
+                        intentService.putExtra("imageId", imageId);
+                        startService(intentService);
+
+                        // 메인화면으로 이동
+                        Intent intentMain = new Intent(PhotoViewActivity.this, MainActivity.class);
+                        intentMain.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);    // 기존 백스택에 MainActivity가 있으면 그걸 가져온다.
+                        startActivity(intentMain);
                     }
                 }, new Response.ErrorListener() {
             @Override
@@ -342,10 +316,11 @@ public class PhotoViewActivity extends AppCompatActivity {
             }
         };
 
-        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                600000,         // 10 min ??
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // wait 10 mins for response
+//        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+//                600000,         // 10 min
+//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);

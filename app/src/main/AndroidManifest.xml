@@ -43,6 +43,9 @@
             android:theme="@style/Base.Theme.AppCompat" />
         <activity android:name=".ResultActivity"></activity>
 
+
+        <service android:name=".ImageProcessCheckService" />
+
     </application>
 
 </manifest>

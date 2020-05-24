@@ -30,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_FROM_CAMERA = 0;
     private static final int PICK_FROM_GALLERY = 1;
 
+    private Button btnCamera;
+    private Button btnFile;
+    private Button btnLookBook;
+
     // temporary photo uri
     private Uri mImageCaptureUri;
 
@@ -38,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final Button btnCamera = findViewById(R.id.btn_camera);
+        btnCamera = findViewById(R.id.btn_camera);
         btnCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,15 +55,20 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                // Create temporary file to hold user's image
-                String url = "tmp_" + System.currentTimeMillis() + ".jpg";
-                mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", new File(Environment.getExternalStorageDirectory(), url));
+                // Create temporary file(user's camera capture)
+                File dirCheck = new File(Environment.getExternalStorageDirectory(), MyUtil.combinePaths("HairChange", "pick_from_camera"));
+                if (!dirCheck.exists())
+                    dirCheck.mkdirs();
+
+                String filename = "tmp_" + System.currentTimeMillis() + ".jpg";
+                File cameraFile = new File(dirCheck.getPath(), filename);
+                mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", cameraFile);
                 intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
                 startActivityForResult(intent, PICK_FROM_CAMERA);
             }
         });
 
-        final Button btnFile = findViewById(R.id.btn_file);
+        btnFile = findViewById(R.id.btn_file);
         btnFile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -73,6 +82,14 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
                 startActivityForResult(intent, PICK_FROM_GALLERY);
+            }
+        });
+
+        btnLookBook = findViewById(R.id.btn_lookbook);
+        btnLookBook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
+                startActivity(resultViewIntent);
             }
         });
     }
