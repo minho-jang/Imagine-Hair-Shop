@@ -1,5 +1,6 @@
 package com.example.hairchange;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -13,12 +14,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -33,10 +36,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_FROM_CAMERA = 0;
     private static final int PICK_FROM_GALLERY = 1;
 
+    private Button btnLookBook;
 
     private Animation fab_open, fab_close;
     private Boolean isFabOpen = false;
     private FloatingActionButton fab, fab1, fab2;
+    private BottomNavigationView bottomNavigationView;
+
     // temporary photo uri
     private Uri mImageCaptureUri;
 
@@ -63,9 +69,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.fab1:
                         anim();
-
-                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
                         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
                                 != PackageManager.PERMISSION_GRANTED) {
                             // Permission is not granted. So request the permission
@@ -84,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.fab2:
                         anim();
-
                         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                 != PackageManager.PERMISSION_GRANTED) {
                             // Permission is not granted. So request the permission
@@ -120,54 +122,29 @@ public class MainActivity extends AppCompatActivity {
         fab1.setOnClickListener(onClickListener);
         fab2.setOnClickListener(onClickListener);
 
-        final Button btnCamera = findViewById(R.id.btn_camera);
-        btnCamera.setOnClickListener(new View.OnClickListener() {
+        bottomNavigationView = findViewById(R.id.contents_bottom);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    // Permission is not granted. So request the permission
-                    permissionCheck_Camera();
-                    return;
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_one:
+                        Toast.makeText(MainActivity.this, "미구현", Toast.LENGTH_SHORT).show();
+//                        GuideFragment guideFragment = GuideFragment.newInstance();
+//                        getSupportFragmentManager().beginTransaction()
+//                                .replace(R.id.control, guideFragment)
+//                                .commit();
+                        break;
+                    case R.id.action_three:
+                        Toast.makeText(MainActivity.this, "Fragment 미구현. Activity로 이동.", Toast.LENGTH_SHORT).show();
+                        Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
+                        startActivity(resultViewIntent);
+//                        LookBookFragment lookBookFragment = LookBookFragment.newInstance();
+//                        getSupportFragmentManager().beginTransaction()
+//                                .replace(R.id.control, lookBookFragment)
+//                                .commit();
+                        break;
                 }
-
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-                // Create temporary file(user's camera capture)
-                File dirCheck = new File(Environment.getExternalStorageDirectory(), MyUtil.combinePaths("HairChange", "pick_from_camera"));
-                if (!dirCheck.exists())
-                    dirCheck.mkdirs();
-
-                String filename = "tmp_" + System.currentTimeMillis() + ".jpg";
-                File cameraFile = new File(dirCheck.getPath(), filename);
-                mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", cameraFile);
-                intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
-                startActivityForResult(intent, PICK_FROM_CAMERA);
-            }
-        });
-
-        btnFile = findViewById(R.id.btn_file);
-        btnFile.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    // Permission is not granted. So request the permission
-                    permissionCheck_WriteExternalStorage();
-                    return;
-                }
-
-                // Call user's device gallery
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
-                startActivityForResult(intent, PICK_FROM_GALLERY);
-            }
-        });
-
-        btnLookBook = findViewById(R.id.btn_lookbook);
-        btnLookBook.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
-                startActivity(resultViewIntent);
+                return true;
             }
         });
     }

@@ -5,40 +5,14 @@
     android:background="@drawable/cottoncandy"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+<!-- TODO RelativeLayout으로 할만한 이유가 없다면 Linear로 바꾸든지 해서 -->
+<!-- FrameLayout의 높이가 알아서 지정되도록 해야함 -->
     <FrameLayout
         android:id="@+id/control"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
+        android:layout_height="match_parent"
         android:layout_centerVertical="true"
         android:background="@android:color/transparent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@android:color/transparent"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/btn_camera"
-                android:layout_width="150dp"
-                android:layout_height="70dp"
-                android:text="CAMERA" />
-
-            <Button
-                android:id="@+id/btn_file"
-                android:layout_width="150dp"
-                android:layout_height="70dp"
-                android:text="GALLERY" />
-
-            <Button
-                android:id="@+id/btn_lookbook"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="LOOKBOOK" />
-        </LinearLayout>
-
     </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
