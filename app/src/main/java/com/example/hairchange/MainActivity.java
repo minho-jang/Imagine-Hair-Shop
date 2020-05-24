@@ -62,28 +62,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int id = v.getId();
-                Intent intent;
                 switch(id) {
                     case R.id.fab:
                         anim();
                         break;
                     case R.id.fab1:
                         anim();
-                        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)
-                                != PackageManager.PERMISSION_GRANTED) {
+                        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                                ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                             // Permission is not granted. So request the permission
                             permissionCheck_Camera();
                             return;
                         }
 
-                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-                        // Create temporary file to hold user's image
-                        String url = "tmp_" + System.currentTimeMillis() + ".jpg";
-                        mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", new File(Environment.getExternalStorageDirectory(), url));
-                        intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
-                        startActivityForResult(intent, PICK_FROM_CAMERA);
-
+                        callCamera();
                         break;
                     case R.id.fab2:
                         anim();
@@ -94,10 +86,8 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
 
-                        // Call user's device gallery
-                        intent = new Intent(Intent.ACTION_PICK);
-                        intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
-                        startActivityForResult(intent, PICK_FROM_GALLERY);
+                        callGallery();
+                        break;
                 }
             }
 
@@ -149,13 +139,27 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void callGallery() {
+        // Call user's device gallery
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
+        startActivityForResult(intent, PICK_FROM_GALLERY);
+    }
+
+    private void callCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        // Create temporary file to hold user's image
+        String url = "tmp_" + System.currentTimeMillis() + ".jpg";
+        mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", new File(Environment.getExternalStorageDirectory(), url));
+        intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
+        startActivityForResult(intent, PICK_FROM_CAMERA);
+    }
+
     private void permissionCheck_Camera() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.CAMERA},
+                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                 REQUEST_PERMISSION_CAMEAR);
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE);
     }
 
     private void permissionCheck_WriteExternalStorage() {
@@ -172,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the contacts-related task you need to do.
+                    callCamera();
                 } else {
                     // permission denied, boo! Disable the functionality that depends on this permission.
                     Toast.makeText(this, "Permission denied : CAMERA", Toast.LENGTH_SHORT).show();
@@ -183,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the contacts-related task you need to do.
+                    callGallery();
                 } else {
                     // permission denied, boo! Disable the functionality that depends on this permission.
                     Toast.makeText(this, "Permission denied : WRITE_EXTERNAL_STORAGE", Toast.LENGTH_SHORT).show();
