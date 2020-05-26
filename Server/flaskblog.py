@@ -5,6 +5,7 @@ from flask_restful import Api, request
 from paramiko import SSHClient
 import time
 import os
+from FaceSwap import face_main
 from dlib import get_frontal_face_detector as face_detector
 from dlib import shape_predictor as shape_predictor
 import cv2
@@ -55,32 +56,6 @@ source_img_dir = os.path.join(root_dir, 'source-image')
 target_img_dir = os.path.join(root_dir, 'target-image')
 result_img_dir = os.path.join(root_dir, 'result-image')
 
-
-def face_swap(origin_path, gan_path, outpath):
-    predictor = shape_predictor('shape_predictor_68_face_landmarks.dat')
-
-    # image load & detect landmarks
-    img = cv2.imread(origin_path)
-    faces = face_detector()(img)[0]
-    shape = predictor(img, faces)
-    landmarks = np.array([[p.x, p.y] for p in shape.parts()])
-    outline = landmarks[[*range(17), *range(26, 16, -1)]]
-
-    # draw convexhull
-    Y, X = polygon(outline[:, 1], outline[:, 0])
-    cropped_img = np.zeros(img.shape, dtype=np.uint8)
-    cropped_img[Y, X] = img[Y, X]
-
-    vertices = ConvexHull(landmarks).vertices
-    Y, X = skimage.draw.polygon(landmarks[vertices, 1], landmarks[vertices, 0])
-    cropped_img = np.zeros(img.shape, dtype=np.uint8)
-
-    # face swap
-    img2 = cv2.imread(gan_path)
-    img2[Y, X] = img[Y, X]
-
-    cv2.imwrite(outpath, img2)
-
 def swap(source_img,target_img,result_img):  # Do face swap & return result image
     image_info = {}
 
@@ -91,34 +66,42 @@ def swap(source_img,target_img,result_img):  # Do face swap & return result imag
     image_info['correct_color'] = True
     image_info['no_debug_window'] = True
 
-    face_swap(source_img, target_img, result_img)
+    face_main.faceswap(image_info)
 
     return result_img
 
 @app.route('/')
 def f1():
-    ## 스왑만 하고싶을때 쓰삼
-
-    # img_name = os.path.join('SERVER_DIR', 'FaceSwap/source-image/111.png')
-    # tar_name = os.path.join('SERVER_DIR', 'FaceSwap/target-image/111.png')
-    # ret_name = os.path.join('SERVER_DIR','result2.png')
-    #
-    # swap(img_name, tar_name, ret_name)
-    #
-    # return send_file('result2.png', mimetype='image/png')
     return render_template('index.html')
+
+## 스왑만 하고싶을때 쓰삼
+@app.route('/swap/<img_name>')
+def onlySwap(img_name):
+    sour_name = os.path.join('C:\\Users\\Eraser\\PycharmProjects\\jaranara-meori-\\Server',
+                            'static/images/source-image/' + img_name + '.jpg')
+    tar_name = os.path.join('C:\\Users\\Eraser\\PycharmProjects\\jaranara-meori-\\Server',
+                            'static/images/target-image/' + img_name + '.png')
+    ret_name = os.path.join('C:\\Users\\Eraser\\PycharmProjects\\jaranara-meori-\\Server',
+                            'static/images/result-image/' + img_name + '.png')
+
+    swap(sour_name, tar_name, ret_name)
+
+    return render_template("swap.html", sour_name='images/source-image/' + img_name + '.jpg',
+                           tar_name='images/target-image/' + img_name + '.png',
+                           ret_name='images/result-image/' + img_name + '.png')
+
 
 @app.route('/start/<img_name>', methods=['POST'])
 def start_synthesis(img_name):
 
     ## 실제 코드, 테스트할 때는 주석 처리
     ###########################################################
-    b64_string = request.form.get('image')
-
-    source_img = os.path.join(source_img_dir, img_name + '.jpg')
-
-    with open(source_img, "wb") as f:
-        f.write(base64.b64decode(b64_string))
+    # b64_string = request.form.get('image')
+    #
+    # source_img = os.path.join(source_img_dir, img_name + '.jpg')
+    #
+    # with open(source_img, "wb") as f:
+    #     f.write(base64.b64decode(b64_string))
 
     ###########################################################
 
@@ -150,29 +133,31 @@ def execute_gpu(img_name):
 
     #### GPU서버에 사진 요청 ####
 
-    start = time.time()
-
-    sftp = client.open_sftp()
-    sftp.put(source_img, STYLEGAN_FFHQ_DIR + img_name)
-
-    stdin, stdout, stderr = client.exec_command(RUN_COMMAND)
-
-    for i in stderr.readlines():
-        print(i)
-
-    for i in stdout.readlines():
-        print(i)
-
+    # start = time.time()
+    #
+    # sftp = client.open_sftp()
+    # sftp.put(source_img, STYLEGAN_FFHQ_DIR + img_name)
+    #
+    # stdin, stdout, stderr = client.exec_command(RUN_COMMAND)
+    #
+    # for i in stderr.readlines():
+    #     print(i)
+    #
+    # for i in stdout.readlines():
+    #     print(i)
+    #
     # target image 는 현재 경로에 일단 저장
-    sftp.get(STYLEGAN_RESULT_IMAGE_PATH, target_img)
+    # sftp.get(STYLEGAN_RESULT_IMAGE_PATH, target_img)
+    #
+    # print("*** get ")
+    # swap(source_img, target_img, result_img)
+    #
+    # client.close()
+    # sftp.close()
+    #
+    # print('time ****', time.time() - start)
 
-    print("*** get ")
     swap(source_img, target_img, result_img)
-
-    client.close()
-    sftp.close()
-
-    print('time ****', time.time() - start)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
