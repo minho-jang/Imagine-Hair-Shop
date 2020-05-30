@@ -90,11 +90,11 @@ def onlySwap(img_name):
 #처음 전송받은 이미지 crop
 @app.route('/crop/<img_name>', methods=['POST'])
 def cropping(img_name):
-    #b64_string = request.form.get('image')
-    #image = base64.b64decode(b64_string)
-    image = request.files['image']
-    image.save(os.path.join(source_img_dir,"test.jpg"))
-    image = cv2.imread(os.path.join("/home/rtos/바탕화면", "test.jpg"), cv2.IMREAD_COLOR)
+    b64_string = request.form.get('image')
+    image = base64.b64decode(b64_string)
+
+    image.save(os.path.join("/tmp", "test.jpg"))
+    image = cv2.imread(os.path.join("/tmp", "test.jpg"), cv2.IMREAD_COLOR)
     faces = face_detector()(image)
     image_height, image_width = image.shape[:2]
 
@@ -145,16 +145,12 @@ def cropping(img_name):
         # 얼굴이 너무 한쪽에 치우쳐 있을 때
         return '0'
 
-    cv2.imwrite('/home/rtos/바탕화면/before.jpg', image)
-
     result_image = image[result_image_top:result_image_bottom, result_image_left:result_image_right]
-    cv2.imwrite('/home/rtos/바탕화면/after.jpg', result_image)
 
     result_image = cv2.resize(result_image, (1024, 1024), interpolation=cv2.INTER_CUBIC)
-    return result_image
+    result_image_base64 = base64.b64encode(result_image)
 
-    #result_image_base64 = base64.b64encode(result_image)
-    #return result_image_base64
+    return result_image_base64
 
 
 @app.route('/start/<img_name>', methods=['POST'])
