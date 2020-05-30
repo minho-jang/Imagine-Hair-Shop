@@ -1,4 +1,5 @@
 # -*- encoding: utf8 -*-
+import io
 import os
 import base64
 import cv2
@@ -91,11 +92,15 @@ def onlySwap(img_name):
 #처음 전송받은 이미지 crop
 @app.route('/crop/<img_name>', methods=['POST'])
 def cropping(img_name):
-    b64_string = request.form.get('image')
-    image = base64.b64decode(b64_string)
+    b64_string = request.files['image']
+    post_request_image = base64.b64decode(b64_string)
 
-    image = np.asarray(bytearray(image), dtype="uint8")
-    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+    in_memory_file = io.BytesIO()
+    post_request_image.save(in_memory_file)
+    data = np.fromstring(in_memory_file.getvalue(), dtype=np.uint8)
+
+    color_image_flag = 1
+    image = cv2.imdecode(data, color_image_flag)
 
     faces = face_detector()(image)
     image_height, image_width = image.shape[:2]
@@ -150,6 +155,8 @@ def cropping(img_name):
     result_image = image[result_image_top:result_image_bottom, result_image_left:result_image_right]
 
     result_image = cv2.resize(result_image, (1024, 1024), interpolation=cv2.INTER_CUBIC)
+    cv2.imwrite('/home/rtos/바탕화면/after.jpg', result_image)
+
     result_image_base64 = base64.b64encode(result_image)
 
     return result_image_base64
