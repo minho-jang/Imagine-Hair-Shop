@@ -118,7 +118,6 @@ def cropping(img_name):
     if(face_width < 250 or face_height < 250):
         #얼굴이 너무 작을 경우
         print('얼굴이 작음')
-        print(face_width, face_height)
         return '0'
 
     # ffhq image 얼굴 크기
@@ -143,9 +142,9 @@ def cropping(img_name):
 
     # result image frame [좌, 우, 상, 하 마진 길이]
     result_image_left = int(face_center[1] - face_width / 2 - result_image_frame[0])
-    result_image_right = int(face_center[1] + face_width / 2 - result_image_frame[1])
+    result_image_right = int(face_center[1] + face_width / 2 + result_image_frame[1])
     result_image_top = int(face_center[0] - face_height / 2 - result_image_frame[2])
-    result_image_bottom = int(face_center[0] + face_height / 2 - result_image_frame[3])
+    result_image_bottom = int(face_center[0] + face_height / 2 + result_image_frame[3])
 
     if (result_image_left < 0 or result_image_top < 0 or
             result_image_right > image_width or result_image_bottom > image_height):
@@ -153,9 +152,7 @@ def cropping(img_name):
         return '0'
 
     result_image = image[result_image_top:result_image_bottom, result_image_left:result_image_right]
-
     result_image = cv2.resize(result_image, (1024, 1024), interpolation=cv2.INTER_CUBIC)
-    cv2.imwrite('/home/rtos/바탕화면/after.jpg', result_image)
 
     result_image_base64 = base64.b64encode(result_image)
 
