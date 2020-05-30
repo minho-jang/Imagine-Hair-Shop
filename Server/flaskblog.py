@@ -2,6 +2,7 @@
 import os
 import base64
 import cv2
+import numpy as np
 from flask import Flask, render_template
 from flask_restful import Api, request
 from paramiko import SSHClient
@@ -93,8 +94,9 @@ def cropping(img_name):
     b64_string = request.form.get('image')
     image = base64.b64decode(b64_string)
 
-    image.save(os.path.join("/tmp", "test.jpg"))
-    image = cv2.imread(os.path.join("/tmp", "test.jpg"), cv2.IMREAD_COLOR)
+    image = np.asarray(bytearray(image), dtype="uint8")
+    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+
     faces = face_detector()(image)
     image_height, image_width = image.shape[:2]
 
