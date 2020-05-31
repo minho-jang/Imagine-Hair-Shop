@@ -92,18 +92,16 @@ def onlySwap(img_name):
 #처음 전송받은 이미지 crop
 @app.route('/crop/<img_name>', methods=['POST'])
 def cropping(img_name):
-    b64_string = request.files['image']
-    post_request_image = base64.b64decode(b64_string)
+    b64_string = request.form.get('image')
+    post_request_image_bytes = base64.b64decode(b64_string)
 
-    in_memory_file = io.BytesIO()
-    post_request_image.save(in_memory_file)
-    data = np.fromstring(in_memory_file.getvalue(), dtype=np.uint8)
+    image = cv2.imdecode(np.frombuffer(post_request_image_bytes, np.uint8), -1)
+    image_height, image_width = image.shape[:2]
 
-    color_image_flag = 1
-    image = cv2.imdecode(data, color_image_flag)
+    matrix = cv2.getRotationMatrix2D((image_width/2, image_height/2), 270, 1)
+    image = cv2.warpAffine(image, matrix, (image_width, image_height))
 
     faces = face_detector()(image)
-    image_height, image_width = image.shape[:2]
 
     if(len(faces) != 1):
         # 얼굴이 하나가 아닐경우
