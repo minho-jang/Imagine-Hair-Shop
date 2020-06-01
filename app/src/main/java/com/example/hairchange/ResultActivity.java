@@ -25,6 +25,9 @@ public class ResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
+        String test = MyUtil.getRandId(getApplicationContext());
+        Log.d(TAG, "id test : " + test);
+
         photo = findViewById(R.id.photo);
 
         File dirResult = new File(MyUtil.combinePaths(getFilesDir().getPath(), "results"));
@@ -32,6 +35,8 @@ public class ResultActivity extends AppCompatActivity {
         File file;
         if (files != null && files.length != 0){
             file = files[0];
+            Log.d(TAG, "file count : " +files.length);
+            Log.d(TAG, "absPath : " + file.getAbsolutePath());
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
             photo.setImageBitmap(bitmap);
         } else {

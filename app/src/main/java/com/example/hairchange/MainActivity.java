@@ -7,12 +7,16 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,11 +25,23 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.theartofdev.edmodo.cropper.CropImage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -36,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_FROM_CAMERA = 0;
     private static final int PICK_FROM_GALLERY = 1;
 
-    private Button btnLookBook;
+    private RequestQueue queue;
+    private ProgressDialog progressDialog;
 
     private Animation fab_open, fab_close;
     private Boolean isFabOpen = false;
@@ -50,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        queue = Volley.newRequestQueue(this);
 
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
@@ -150,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         // Create temporary file to hold user's image
-        String url = "tmp_" + System.currentTimeMillis() + ".jpg";
+        String url = System.currentTimeMillis() + "_hairchange.jpg";
         mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", new File(Environment.getExternalStorageDirectory(), url));
         intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
         startActivityForResult(intent, PICK_FROM_CAMERA);
@@ -215,24 +234,129 @@ public class MainActivity extends AppCompatActivity {
             mImageCaptureUri = data.getData();
             cropImage(mImageCaptureUri);
         }
-        else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
-            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-            Uri resultUri = result.getUri();
+    }
 
-            // go to photoview
-            Intent photoViewIntent = new Intent(getApplication(), PhotoViewActivity.class);
-            photoViewIntent.putExtra("PhotoUri", resultUri.toString());
-            startActivity(photoViewIntent);
+    // minho {
+    protected void cropImage(Uri imageFile) {
+        loading("Image cropping...");
+
+        Log.d(TAG, "imageFile : " + imageFile.getPath());
+        Bitmap bitmap = null;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), imageFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
+
+        if (bitmap == null) {
+            Log.d(TAG, "bitmap is null...");
+            return;
+        }
+
+//        File file = new File(imageFile.getPath());
+//        ImageDecoder.Source source = ImageDecoder.createSource(file);
+//        Bitmap bitmap = ImageDecoder.decodeBitmap(source);
+
+        String imageId = MyUtil.getRandId(getApplicationContext());
+        String url = SERVER_BASE_URL + "crop/" + imageId;
+
+        // Converting bitmap image to base64 string
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        final String imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+
+        // Request : image crop
+        // Response: just OK.
+        Log.d(TAG, "Crop Request Start");
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.POST,
+                url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d(TAG, "response: " + response);
+                        if ("0".equals(response)) {
+                            Toast.makeText(getApplicationContext(), "Image Crop Error: Photo Error", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Image Crop success", Toast.LENGTH_SHORT).show();
+                            File cropFile = new File(base64ToFile(response));
+
+                            loadingEnd();
+
+                            // go to photoview
+                            Intent photoViewIntent = new Intent(getApplication(), PhotoViewActivity.class);
+                            photoViewIntent.putExtra("PhotoPath", cropFile.getAbsolutePath());
+                            startActivity(photoViewIntent);
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                loadingEnd();
+
+                Toast.makeText(getApplicationContext(), "Image Crop Error: Server Error", Toast.LENGTH_SHORT).show();
+                error.printStackTrace();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("image", imageString);
+                return params;
+            }
+        };
+
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
     }
 
-    private void cropImage(Uri inUri) {
-        CropImage.activity(inUri)
-                .setMinCropResultSize(1024,1024)
-                .setMaxCropResultSize(1024,1024)
-                .setAspectRatio(1,1)
-                .start(this);
+    // input : base64 string
+    // output: image file name (path)
+    private String base64ToFile(String string) {
+        // string to byte array
+        final String resultString = string;
+        byte[] imageBytes = Base64.decode(resultString, 0);
+
+        // Byte array to jpg file
+        long now = System.currentTimeMillis();
+        File reusltFile = new File(getFilesDir().getPath(), now + "_tmp.jpg");
+        Log.d(TAG, "reusltFile :" + reusltFile.getPath());
+
+        FileOutputStream outputStream;
+        try {
+            outputStream = new FileOutputStream(reusltFile, false);
+            outputStream.write(imageBytes);
+            outputStream.flush();
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return reusltFile.getPath();
     }
 
+    private void loading(final String msg) {
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        progressDialog = new ProgressDialog(MainActivity.this);
+                        progressDialog.setIndeterminate(true);
+                        progressDialog.setMessage(msg);
+                        progressDialog.show();
+                    }
+                }, 0);
+    }
 
+    private void loadingEnd() {
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                }, 0);
+    }
+    // minho }
 }

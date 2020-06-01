@@ -68,7 +68,7 @@ public class ImageProcessCheckService extends IntentService {
 
         // 1. loop check the image processing is end
         // 2. If yes, convert the response(base64) to file
-        // 3. And notice to user
+        // 3. And notice to user (Toast)
 
         long start = System.currentTimeMillis();
         long end;
@@ -135,11 +135,11 @@ public class ImageProcessCheckService extends IntentService {
             dirCheck.mkdirs();
 
         long now = System.currentTimeMillis();
-        File reusltFile = new File(dirCheck, now + "_result.png");
-        Log.d(TAG, "reusltFile :" + reusltFile.getPath());
+        File resultFile = new File(dirCheck, now + "_result.png");
+        Log.d(TAG, "resultFile :" + resultFile.getPath());
         FileOutputStream outputStream;
         try {
-            outputStream = new FileOutputStream(reusltFile, false);
+            outputStream = new FileOutputStream(resultFile, false);
             outputStream.write(imageBytes);
             outputStream.flush();
             outputStream.close();
@@ -147,7 +147,7 @@ public class ImageProcessCheckService extends IntentService {
             e.printStackTrace();
         }
 
-        return reusltFile.getPath();
+        return resultFile.getPath();
     }
 
 

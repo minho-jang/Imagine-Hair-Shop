@@ -72,22 +72,22 @@ public class PhotoViewActivity extends AppCompatActivity {
         photo = findViewById(R.id.photo);
         sticker = findViewById(R.id.sticker);
 
-        String photoUri = getIntent().getExtras().getString("PhotoUri");
-        getImageFromURI(photoUri);  // uri 로 부터 이미지가져오기
+        String photoPath = getIntent().getExtras().getString("PhotoPath");
+        setBitmapFromUri(photoPath);  // PhotoPath 에서 이미지 불러오기
 
         man = findViewById(R.id.man);
         woman = findViewById(R.id.woman);
         theOthers = findViewById(R.id.the_others);
         man.setSelected(true);
 
+        // RecyclerView
         recyclerView = findViewById(R.id.recycler1);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
+        // Set Adapter
         adapter = new ImageItemAdapter();
-
         adapter.addItem(R.drawable.man_raised1);
         adapter.addItem(R.drawable.man_raised2);
-
         recyclerView.setAdapter(adapter);
 
         mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
@@ -162,8 +162,9 @@ public class PhotoViewActivity extends AppCompatActivity {
                         // ISSUE 약간 sticker가 오른쪽 으로 감 (only woman hair)
 //                        photo.setImageBitmap(bitmapOverlay);
 
-                        String imageId = IMAGE_ID;
-                        String url = SERVER_BASE_URL + imageId;
+                        // HTTP post request - image upload
+                        imageId = MyUtil.getRandId(getApplicationContext());
+                        String url = SERVER_BASE_URL + "start/" + imageId;
                         httpPostReqeust(url, bitmapOverlay);
 
                         return true;
@@ -222,15 +223,15 @@ public class PhotoViewActivity extends AppCompatActivity {
         }
     }
 
-    private void getImageFromURI(String photoUri) {
-        photoUri = photoUri.replace("file://", "");
-        File imgFile = new File(photoUri);
+    private void setBitmapFromUri(String photoPath) {
+        Log.d(TAG, "photoPath : " + photoPath);
+
+        File imgFile = new File(photoPath);
         if (imgFile.exists()) {
             originImage = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            Log.d(TAG, originImage.toString());
-            Log.d(TAG, imgFile.getAbsolutePath());
-            Log.d(TAG, photo.toString());
             photo.setImageBitmap(originImage);
+        } else {
+            Log.d(TAG, "[" + photoPath + "] is not exited...");
         }
     }
 
@@ -303,9 +304,10 @@ public class PhotoViewActivity extends AppCompatActivity {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                loadingEnd();
+
                 Toast.makeText(getApplicationContext(), "Image upload error", Toast.LENGTH_SHORT).show();
                 error.printStackTrace();
-                loadingEnd();
             }
         }) {
             @Override
