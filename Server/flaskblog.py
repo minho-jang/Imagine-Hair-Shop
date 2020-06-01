@@ -4,12 +4,17 @@ import os
 import base64
 import cv2
 import numpy as np
+import skimage
+import statistics
 from flask import Flask, render_template
 from flask_restful import Api, request
 from paramiko import SSHClient
 from FaceSwap import face_main
 from celery import Celery
 from dlib import get_frontal_face_detector as face_detector
+from dlib import shape_predictor as shape_predictor
+from skimage.draw import polygon
+from scipy.spatial import ConvexHull
 
 
 # celery 동작 명령어
@@ -69,6 +74,34 @@ def swap(source_img,target_img,result_img):  # Do face swap & return result imag
     face_main.faceswap(image_info)
 
     return result_img
+
+
+#custom face swap code(source img : origin, target_img : stygan image, result_img : swap result image)
+def swap_custom(source_img_path = '/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/origin2.png',
+                target_img_path = '/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/target2.png',
+                result_img_path = '/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/result2.png'):
+    predictor = shape_predictor('shape_predictor_68_face_landmarks.dat')
+
+    origin = cv2.imread(source_img_path)
+    target = cv2.imread(target_img_path)
+    origin_mask = np.zeros(origin.shape, origin.dtype)
+
+    #detect landmarks
+    faces = face_detector()(origin)[0]
+    shape = predictor(origin, faces)
+    landmarks = np.array([[p.x, p.y] for p in shape.parts()])
+    outline = landmarks[[*range(17), *range(26, 16, -1)]]
+
+    poly = np.array(outline)
+
+    cv2.fillPoly(origin_mask, [poly], (255, 255, 255))
+    center = (statistics.mean(outline[:, 0]), statistics.mean(outline[:, 1])+15)
+
+    cv2.imwrite('/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/mask.png', origin_mask)
+
+    result = cv2.seamlessClone(origin, target, origin_mask, center, cv2.NORMAL_CLONE)
+    cv2.imwrite(result_img_path, result)
+    return result
 
 # flask 내에서 테스트를 하기 위한 라우트. test.png 로 post 요청 보냄
 @app.route('/')
