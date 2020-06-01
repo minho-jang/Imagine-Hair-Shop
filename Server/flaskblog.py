@@ -10,6 +10,7 @@ from paramiko import SSHClient
 from FaceSwap import face_main
 from celery import Celery
 from dlib import get_frontal_face_detector as face_detector
+from PIL import Image
 
 
 # celery 동작 명령어
@@ -152,7 +153,8 @@ def cropping(img_name):
     result_image = image[result_image_top:result_image_bottom, result_image_left:result_image_right]
     result_image = cv2.resize(result_image, (1024, 1024), interpolation=cv2.INTER_CUBIC)
 
-    result_image_base64 = base64.b64encode(result_image)
+    retval, buffer = cv2.imencode('.jpg', result_image)
+    result_image_base64 = base64.b64encode(buffer)
 
     return result_image_base64
 
