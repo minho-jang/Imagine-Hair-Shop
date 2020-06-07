@@ -318,11 +318,11 @@ public class PhotoViewActivity extends AppCompatActivity {
             }
         };
 
-        // wait 10 mins for response
-//        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-//                600000,         // 10 min
-//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // wait 1 mins for response
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                60000,         // 1 min
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);

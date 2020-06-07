@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -277,13 +278,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         Log.d(TAG, "response: " + response);
+                        loadingEnd();
                         if ("0".equals(response)) {
                             Toast.makeText(getApplicationContext(), "Image Crop Error: Photo Error", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getApplicationContext(), "Image Crop success", Toast.LENGTH_SHORT).show();
                             File cropFile = new File(base64ToFile(response));
-
-                            loadingEnd();
 
                             // go to photoview
                             Intent photoViewIntent = new Intent(getApplication(), PhotoViewActivity.class);
@@ -307,6 +307,12 @@ public class MainActivity extends AppCompatActivity {
                 return params;
             }
         };
+
+        // wait 1 mins for response
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                60000,         // 1 min
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);

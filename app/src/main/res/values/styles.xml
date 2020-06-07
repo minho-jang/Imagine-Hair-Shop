@@ -3,7 +3,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="android:background">@color/color2</item>
+<!--        <item name="android:background">@color/color2</item>-->
         <item name="buttonStyle">@style/button</item>
 <!--        타이틀바-->
         <item name="colorPrimary">@color/color2</item>
