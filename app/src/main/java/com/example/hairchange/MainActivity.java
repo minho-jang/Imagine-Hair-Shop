@@ -55,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_FROM_CAMERA = 0;
     private static final int PICK_FROM_GALLERY = 1;
 
+    private static final long FINISH_INTERVAL_TIME = 2000;
+    private long backPressedTime = 0;
+
     private RequestQueue queue;
     private ProgressDialog progressDialog;
 
@@ -160,9 +163,8 @@ public class MainActivity extends AppCompatActivity {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 switch (item.getItemId()) {
                     case R.id.action_one:
-//                        Toast.makeText(MainActivity.this, "미구현", Toast.LENGTH_SHORT).show();
                         transaction.replace(R.id.control, guideFragment);
-                        transaction.addToBackStack(null);
+//                        transaction.addToBackStack(null);
                         transaction.commit();
 //                        GuideFragment guideFragment = GuideFragment.newInstance();
 //                        getSupportFragmentManager().beginTransaction()
@@ -172,9 +174,8 @@ public class MainActivity extends AppCompatActivity {
 
                         break;
                     case R.id.action_three:
-//                        Toast.makeText(MainActivity.this, "Fragment 미구현. Activity로 이동.", Toast.LENGTH_SHORT).show();
                         transaction.replace(R.id.control, lookBookFragment);
-                        transaction.addToBackStack(null);
+//                        transaction.addToBackStack(null);
                         transaction.commit();
 //                        Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
 //                        startActivity(resultViewIntent);
@@ -380,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
                         progressDialog = new ProgressDialog(MainActivity.this);
                         progressDialog.setIndeterminate(true);
                         progressDialog.setMessage(msg);
+                        progressDialog.setCancelable(false);
                         progressDialog.show();
                     }
                 }, 0);
@@ -393,6 +395,19 @@ public class MainActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                 }, 0);
+    }
+
+    @Override
+    public void onBackPressed() {
+        long tempTime = System.currentTimeMillis();
+        long intervalTime = tempTime - backPressedTime;
+
+        if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
+            super.onBackPressed();
+        } else {
+            backPressedTime = tempTime;
+            Toast.makeText(getApplicationContext(), "한번 더 누르면 종료합니다", Toast.LENGTH_SHORT).show();
+        }
     }
     // minho }
 }

@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/cottoncandy"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
-<!-- TODO RelativeLayout으로 할만한 이유가 없다면 Linear로 바꾸든지 해서 -->
-<!-- FrameLayout의 높이가 알아서 지정되도록 해야함 -->
 
     <FrameLayout
         android:id="@+id/control"
@@ -56,6 +54,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
+        android:layout_gravity="end"
         android:backgroundTint="#239DEE"
         android:clickable="true"
         app:srcCompat="@drawable/ic_fab_plus" />
@@ -68,17 +67,23 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/contents_bottom"
+    <FrameLayout
+        android:id="@+id/layout_bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="0dp"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/Bottom_nav"
-        app:menu="@menu/items_bottom">
+        android:background="#000000"
+        android:layout_alignParentBottom="true" >
 
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/contents_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/Bottom_nav"
+            app:menu="@menu/items_bottom" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/title"

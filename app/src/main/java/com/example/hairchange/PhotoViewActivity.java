@@ -353,6 +353,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                         progressDialog = new ProgressDialog(PhotoViewActivity.this);
                         progressDialog.setIndeterminate(true);
                         progressDialog.setMessage(msg);
+                        progressDialog.setCancelable(false);
                         progressDialog.show();
                     }
                 }, 0);
