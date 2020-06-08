@@ -406,7 +406,7 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         } else {
             backPressedTime = tempTime;
-            Toast.makeText(getApplicationContext(), "한번 더 누르면 종료합니다", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "한 번 더 누르면 종료합니다", Toast.LENGTH_SHORT).show();
         }
     }
     // minho }

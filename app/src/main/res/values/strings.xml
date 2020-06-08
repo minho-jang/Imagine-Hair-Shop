@@ -15,4 +15,14 @@
     <string name="description_info">Info</string>
     <string name="request_permission">This app needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+
+    <string name="guide0">GUIDE</string>
+    <string name="guide1">1. 먼저 헤어스타일을 바꿀 사진이 필요합니다. 바로 사진을 찍거나 갤러리에서 사진을 가져오세요.</string>
+    <string name="guide1Photo">가이드 사진 1</string>
+    <string name="guide2">2. 선택된 사진은 저희가 처리할 수 있게 당신의 얼굴을 잘라서 가져옵니다. 그 위에 자유롭게 꾸며주세요.</string>
+    <string name="guide2Photo">가이드 사진 2</string>
+    <string name="guide3">3. 꾸며진 사진은 약 3분 간의 시간이 지난 후 Look Book에 추가됩니다.</string>
+    <string name="guide3Photo">가이드 사진 3</string>
+    <string name="guide4">4. Look Book에서 지난 상상들을 구경하세요.</string>
+    <string name="guide4Photo">가이드 사진 4</string>
 </resources>
