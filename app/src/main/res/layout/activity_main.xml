@@ -10,7 +10,6 @@
         android:id="@+id/control"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/contents_bottom"
         android:layout_below="@+id/toolbar"
         android:layout_marginTop="0dp"
         android:layout_marginBottom="0dp"
@@ -53,10 +52,12 @@
         android:layout_alignParentEnd="false"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="-15dp"
         android:layout_gravity="end"
         android:backgroundTint="#239DEE"
         android:clickable="true"
+        app:fabCustomSize="80dp"
+        app:maxImageSize="37dp"
         app:srcCompat="@drawable/ic_fab_plus" />
 
     <androidx.appcompat.widget.Toolbar
@@ -78,8 +79,6 @@
             android:id="@+id/contents_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
-            android:layout_marginEnd="40dp"
             android:minHeight="?attr/actionBarSize"
             android:theme="@style/Bottom_nav"
             app:menu="@menu/items_bottom" />
