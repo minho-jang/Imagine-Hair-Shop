@@ -86,8 +86,14 @@ public class PhotoViewActivity extends AppCompatActivity {
 
         // Set Adapter
         adapter = new ImageItemAdapter();
-        adapter.addItem(R.drawable.man_raised1);
-        adapter.addItem(R.drawable.man_raised2);
+        adapter.addItem(R.drawable.man1);
+        adapter.addItem(R.drawable.man2);
+        adapter.addItem(R.drawable.man3);
+        adapter.addItem(R.drawable.man4);
+        adapter.addItem(R.drawable.man5);
+        adapter.addItem(R.drawable.man6);
+        adapter.addItem(R.drawable.man7);
+        adapter.addItem(R.drawable.man8);
         recyclerView.setAdapter(adapter);
 
         mScaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
@@ -242,13 +248,25 @@ public class PhotoViewActivity extends AppCompatActivity {
             woman.setSelected(false);
             theOthers.setSelected(false);
 
-            adapter.addItem(R.drawable.man_raised1);
-            adapter.addItem(R.drawable.man_raised2);
+            adapter.addItem(R.drawable.man1);
+            adapter.addItem(R.drawable.man2);
+            adapter.addItem(R.drawable.man3);
+            adapter.addItem(R.drawable.man4);
+            adapter.addItem(R.drawable.man5);
+            adapter.addItem(R.drawable.man6);
+            adapter.addItem(R.drawable.man7);
+            adapter.addItem(R.drawable.man8);
         } else if (view.getId() == R.id.woman) {
             man.setSelected(false);
             theOthers.setSelected(false);
 
-            adapter.addItem(R.drawable.woman_blond_long);
+            adapter.addItem(R.drawable.woman1);
+            adapter.addItem(R.drawable.woman2);
+            adapter.addItem(R.drawable.woman3);
+            adapter.addItem(R.drawable.woman4);
+            adapter.addItem(R.drawable.woman5);
+            adapter.addItem(R.drawable.woman6);
+            adapter.addItem(R.drawable.woman7);
         } else if (view.getId() == R.id.the_others) {
             man.setSelected(false);
             woman.setSelected(false);

@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
     // temporary photo uri
     private Uri mImageCaptureUri;
+    GuideFragment guideFragment;
+    LookBookFragment lookBookFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +74,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         queue = Volley.newRequestQueue(this);
+
+        guideFragment = new GuideFragment();
+        lookBookFragment = new LookBookFragment();
+
+//        FragmentManager fm = getSupportFragmentManager();
+//        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+//        fragmentTransaction.add(R.id.main_fragment, guideFragment);
+//        fragmentTransaction.commit();
+
+        if(findViewById(R.id.control) != null) {
+            if(savedInstanceState != null) {
+                return;
+            }
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.control, guideFragment).commit();
+        }
 
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
@@ -136,21 +157,30 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 switch (item.getItemId()) {
                     case R.id.action_one:
-                        Toast.makeText(MainActivity.this, "미구현", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(MainActivity.this, "미구현", Toast.LENGTH_SHORT).show();
+                        transaction.replace(R.id.control, guideFragment);
+                        transaction.addToBackStack(null);
+                        transaction.commit();
 //                        GuideFragment guideFragment = GuideFragment.newInstance();
 //                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.control, guideFragment)
+//                                .replace(R.id.main_fragment, guideFragment)
 //                                .commit();
+
+
                         break;
                     case R.id.action_three:
-                        Toast.makeText(MainActivity.this, "Fragment 미구현. Activity로 이동.", Toast.LENGTH_SHORT).show();
-                        Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
-                        startActivity(resultViewIntent);
+//                        Toast.makeText(MainActivity.this, "Fragment 미구현. Activity로 이동.", Toast.LENGTH_SHORT).show();
+                        transaction.replace(R.id.control, lookBookFragment);
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+//                        Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
+//                        startActivity(resultViewIntent);
 //                        LookBookFragment lookBookFragment = LookBookFragment.newInstance();
 //                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.control, lookBookFragment)
+//                                .replace(R.id.main_fragment, lookBookFragment)
 //                                .commit();
                         break;
                 }

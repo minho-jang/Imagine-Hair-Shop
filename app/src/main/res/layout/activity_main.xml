@@ -7,32 +7,26 @@
 
 <!-- TODO RelativeLayout으로 할만한 이유가 없다면 Linear로 바꾸든지 해서 -->
 <!-- FrameLayout의 높이가 알아서 지정되도록 해야함 -->
+
     <FrameLayout
         android:id="@+id/control"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:background="@android:color/transparent">
-    </FrameLayout>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/contents_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@+id/contents_bottom"
+        android:layout_below="@+id/toolbar"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="0dp"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/Bottom_nav"
-        app:menu="@menu/items_bottom">
+        android:background="@android:color/transparent">
 
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
+    </FrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/fab"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentEnd="false"
+        android:layout_centerHorizontal="true"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
         android:backgroundTint="#239DEE"
@@ -45,7 +39,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/fab1"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentEnd="false"
+        android:layout_centerHorizontal="true"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
         android:backgroundTint="#239DEE"
@@ -57,10 +52,10 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/contents_bottom"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
         android:backgroundTint="#239DEE"
         android:clickable="true"
         app:srcCompat="@drawable/ic_fab_plus" />
@@ -72,6 +67,18 @@
         android:gravity="center"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/contents_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/Bottom_nav"
+        app:menu="@menu/items_bottom">
+
+    </com.google.android.material.bottomnavigation.BottomNavigationView>
 
     <TextView
         android:id="@+id/title"
