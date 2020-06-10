@@ -32,7 +32,7 @@ import java.util.ArrayList;
 public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.ItemViewHolder>{
 //    private ArrayList<String> mData;
     private ArrayList<Integer> mData;
-
+    int tag;
 
     public class ItemViewHolder extends RecyclerView.ViewHolder {
         protected ImageView imageItem1;
@@ -68,17 +68,27 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
             };
 
             View.OnDragListener mDragListener = new View.OnDragListener() {
+
                 @Override
                 public boolean onDrag(View v, DragEvent event) {
+                    v.invalidate();
                     switch(event.getAction()) {
                         case DragEvent.ACTION_DRAG_STARTED:
+
                             return true;
                         case DragEvent.ACTION_DRAG_ENTERED:
+
                             return true;
                         case DragEvent.ACTION_DRAG_EXITED:
+                            tag = (int)v.getTag();
+
+                            Log.i("Tag", tag+"");
+                            Log.i("pos", getAdapterPosition()+"");
                             return true;
                         case DragEvent.ACTION_DROP:
+                            /*
                             View view = (View)event.getLocalState();
+                            Log.i("localstate", event.getLocalState().toString());
                             ViewGroup viewGroup = (ViewGroup) view.getParent();
                             viewGroup.removeView(view);
 
@@ -87,6 +97,8 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
                             containView = (FrameLayout) v;
                             containView.addView(view);
                             view.setVisibility(View.VISIBLE);
+                            */
+
                             return true;
                         case DragEvent.ACTION_DRAG_ENDED:
                             if(event.getResult() == false) {
@@ -98,7 +110,10 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
 
                             ImageView sticker = (ImageView) viewGroup2.findViewById(R.id.sticker);
 //                            sticker.setImageResource(R.drawable.man_raised1test);
-                            sticker.setImageResource((int)v.getTag());
+//                            sticker.setImageResource((int)v.getTag());
+                            Log.i("Tag", tag+"");
+                            sticker.setImageResource(tag);
+
 
 //                            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) sticker.getLayoutParams();
 //                            params.width = 300;
@@ -166,6 +181,7 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
 //        holder.onBind(mData.get(position));
         holder.imageItem1.setImageResource(mData.get(position));
         holder.imageItem1.setTag(mData.get(position));
+        Log.i("setTag", mData.get(position).toString());
 //        holder.imageItem2.setImageResource(mData.get(position));
 //        holder.imageItem3.setImageResource(mData.get(position));
 //        holder.imageItem4.setImageResource(mData.get(position));
