@@ -46,6 +46,14 @@ public class GridAdapter extends BaseAdapter {
         image = convertView.findViewById(R.id.image_item1);
         Bitmap bitmap = BitmapFactory.decodeFile(images.get(position).getAbsolutePath());
         image.setImageBitmap(bitmap);
+
+        image.setOnClickListener(new ImageView.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO : click event
+            }
+        });
+
 //        image.setImageResource(images.get(position));
         Log.i("convertView", "true");
 
