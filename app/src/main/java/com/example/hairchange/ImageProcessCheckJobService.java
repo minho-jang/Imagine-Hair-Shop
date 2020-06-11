@@ -3,14 +3,14 @@ package com.example.hairchange;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.JobIntentService;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,13 +23,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 /**
- * 이미지 처리를 위해 HTTP 요청을 보내고
- * response를 받아서 결과 사진을 주는 서비스
+ * developing...
+ *
+ * IntentService가 API 30에서 deprecated라서
+ * JobIntentService로 마이그레이션 했는데 잘 되지 않는다.
  */
-public class ImageProcessCheckService extends IntentService {
-    private static final String TAG = "ImageProcessCheckService";
-
-    public static boolean isRunning = false;
+public class ImageProcessCheckJobService extends JobIntentService {
+    private static final String TAG = "ImageProcessCheckJobService";
 
     private Handler mHandler;
     private RequestQueue queue;
@@ -38,17 +38,11 @@ public class ImageProcessCheckService extends IntentService {
     private String resultBase64;
     private String resultFilePath;
 
-    /**
-     * A constructor is required, and must call the super IntentService(String)
-     * constructor with a name for the worker thread.
-     */
-    public ImageProcessCheckService() {
-        super("ImageProcessCheckService");
-    }
+    static final int JOB_ID = 1000;
 
     @Override
     public void onCreate() {
-        super.onCreate();
+        Log.d(TAG, "onCreate()");
         mHandler = new Handler();
         queue = Volley.newRequestQueue(this);
         checkCount = 0;
@@ -57,21 +51,19 @@ public class ImageProcessCheckService extends IntentService {
         resultFilePath = "";
     }
 
-    @Override
-    public void onDestroy() {
-        isRunning = false;
-        super.onDestroy();
+    /**
+     * Convenience method for enqueuing work in to this service.
+     */
+    static void enqueueWork(Context context, Intent work) {
+        enqueueWork(context, ImageProcessCheckJobService.class, JOB_ID, work);
+        Log.d(TAG, "enqueueWork()");
     }
 
-    /**
-     * The IntentService calls this method from the default worker thread with
-     * the intent that started the service. When this method returns, IntentService
-     * stops the service, as appropriate.
-     */
     @Override
-    protected void onHandleIntent(@Nullable Intent intent) {
-        isRunning = true;
-        Log.d(TAG, "ImageProcessCheckService is running");
+    protected void onHandleWork(@NonNull Intent intent) {
+        // We have received work to do.  The system or framework is already
+        // holding a wake lock for us at this point, so we can just go.
+        Log.d(TAG, "JobService start : onHandleWork()");
 
         String imageId = intent.getExtras().getString("imageId");
 
@@ -122,12 +114,18 @@ public class ImageProcessCheckService extends IntentService {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(ImageProcessCheckService.this, "이발이 끝났습니다. 룩북에서 확인해보세요 !", Toast.LENGTH_LONG).show();
+                    Toast.makeText(ImageProcessCheckJobService.this, "이발이 끝났습니다. 룩북에서 확인해보세요 !", Toast.LENGTH_LONG).show();
                 }
             });
         } else {
             Log.d(TAG, "Something broken !");
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
     }
 
     // input : base64 string

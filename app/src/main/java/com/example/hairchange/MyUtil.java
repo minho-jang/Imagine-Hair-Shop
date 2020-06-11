@@ -1,5 +1,7 @@
 package com.example.hairchange;
 
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -11,7 +13,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
+
+import static android.content.Context.ACTIVITY_SERVICE;
 
 public class MyUtil {
     public final static String TAG = "MyUtil";

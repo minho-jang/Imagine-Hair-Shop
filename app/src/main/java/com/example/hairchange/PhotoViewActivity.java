@@ -304,7 +304,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                     public void onResponse(String response) {
                         Log.d(TAG, "response: " + response);
 
-                        Toast.makeText(getApplicationContext(), "Image upload success", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "이발을 시작합니다. (약 3분)", Toast.LENGTH_LONG).show();
                         loadingEnd();
 
                         // 이미지가 업로드 되면

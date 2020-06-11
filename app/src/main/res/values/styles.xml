@@ -25,6 +25,15 @@
         <item name="android:colorControlHighlight">@color/color5</item>
     </style>
 
+    <style name="Bottom_send" parent="BottomTheme">
+        <item name="android:textColorPrimary">@color/colorBlue</item>
+        <item name="colorPrimary">@color/colorBlue</item>
+        <item name="android:textColorSecondary">@color/colorBlue</item>
+        <item name="android:textColor">@color/colorBlue</item>
+        <item name="android:colorControlNormal">@color/colorBlue</item>
+        <item name="android:colorControlHighlight">@color/colorBlue</item>
+    </style>
+
     <style name="BottomTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/color5</item>
