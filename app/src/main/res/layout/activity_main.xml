@@ -72,7 +72,6 @@
         android:id="@+id/layout_bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#000000"
         android:layout_alignParentBottom="true" >
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -81,6 +80,7 @@
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
             android:theme="@style/Bottom_nav"
+            android:background="@color/colorWhite"
             app:menu="@menu/items_bottom" />
     </FrameLayout>
 

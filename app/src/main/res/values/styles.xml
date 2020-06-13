@@ -17,12 +17,8 @@
     </style>
 
     <style name="Bottom_nav" parent="BottomTheme">
-        <item name="android:textColorPrimary">@color/color10</item>
-
-        <item name="android:textColorSecondary">@color/color10</item>
-        <item name="android:textColor">@color/color10</item>
-        <item name="android:colorControlNormal">@color/color5</item>
-        <item name="android:colorControlHighlight">@color/color5</item>
+        <item name="android:colorControlNormal">@color/color10</item>
+        <item name="android:colorControlHighlight">@color/color10</item>
     </style>
 
     <style name="Bottom_send" parent="BottomTheme">
@@ -36,11 +32,12 @@
 
     <style name="BottomTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/color5</item>
-        <!-- <item name="colorPrimaryDark">@color/colorPrimaryDark</item> -->
-        <!-- <item name="colorPrimary">@color/colorWhite</item> -->
-        <item name="colorPrimaryDark">@color/color5</item>
-        <item name="colorAccent">@color/color5</item>
+        <item name="colorPrimary">@color/color11</item>
+        <item name="android:textColorPrimary">@color/color11</item>
+        <item name="android:textColorSecondary">@color/color1</item>
+        <item name="colorSecondary">@color/color1</item>
+        <item name="colorPrimaryDark">@color/color10</item>
+        <item name="colorAccent">@color/color10</item>
 
     </style>
 
