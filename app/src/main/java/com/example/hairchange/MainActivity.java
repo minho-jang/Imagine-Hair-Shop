@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -43,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -286,6 +288,43 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // bitmap rotate
+
+//        String photoPath = MyUtil.getPathFromUri(getApplicationContext(), imageFile);
+//        Log.d(TAG, "photoPath: " + photoPath);
+        ExifInterface ei = null;
+        try {
+            InputStream is = getContentResolver().openInputStream(imageFile);
+            assert is != null;
+            ei = new ExifInterface(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assert ei != null;
+        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_UNDEFINED);
+
+        Bitmap rotatedBitmap = null;
+        switch(orientation) {
+
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                rotatedBitmap = MyUtil.rotateImage(bitmap, 90);
+                break;
+
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                rotatedBitmap = MyUtil.rotateImage(bitmap, 180);
+                break;
+
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                rotatedBitmap = MyUtil.rotateImage(bitmap, 270);
+                break;
+
+            case ExifInterface.ORIENTATION_NORMAL:
+            default:
+                rotatedBitmap = bitmap;
+        }
+
 //        File file = new File(imageFile.getPath());
 //        ImageDecoder.Source source = ImageDecoder.createSource(file);
 //        Bitmap bitmap = ImageDecoder.decodeBitmap(source);
@@ -295,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Converting bitmap image to base64 string
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] imageBytes = baos.toByteArray();
         final String imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
