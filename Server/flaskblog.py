@@ -10,7 +10,6 @@ from paramiko import SSHClient
 from FaceSwap import face_main
 from celery import Celery
 from dlib import get_frontal_face_detector as face_detector
-from PIL import Image
 
 
 # celery 동작 명령어
@@ -49,8 +48,8 @@ port ="NIPA_GPU_SERVER_PORT"
 password = "NIPA_GPU_SERVER_PASSWORD"
 
 
-#root_dir = ROOT_DIR
-root_dir = '/tmp'
+root_dir = ROOT_DIR
+#root_dir = '/tmp'
 
 source_img_dir = os.path.join(root_dir, 'source-image')
 target_img_dir = os.path.join(root_dir, 'target-image')
@@ -79,14 +78,14 @@ def f1():
 ## 스왑만 하고싶을때 쓰삼
 @app.route('/swap/<img_name>')
 def onlySwap(img_name):
-    sour_name = os.path.join(source_img_dir, img_name + '.png')
+    sour_name = os.path.join(source_img_dir, img_name + '.jpg')
     tar_name = os.path.join(target_img_dir, img_name + '.png')
     ret_name = os.path.join(result_img_dir, img_name + '.png')
 
     swap(sour_name, tar_name, ret_name)
 
     return render_template("swap.html",
-                           sour_name='images/source-image/' + img_name + '.png',
+                           sour_name='images/source-image/' + img_name + '.jpg',
                            tar_name='images/target-image/' + img_name + '.png',
                            ret_name='images/result-image/' + img_name + '.png')
 
@@ -97,25 +96,23 @@ def cropping(img_name):
     post_request_image_bytes = base64.b64decode(b64_string)
 
     image = cv2.imdecode(np.frombuffer(post_request_image_bytes, np.uint8), -1)
-    image_height, image_width = image.shape[:2]
 
-    matrix = cv2.getRotationMatrix2D((image_width/2, image_height/2), 270, 1)
-    image = cv2.warpAffine(image, matrix, (image_width, image_height))
+    image_height, image_width = image.shape[:2]
+    print("image height, width", image_height, image_width)
 
     faces = face_detector()(image)
 
-    if(len(faces) != 1):
-        # 얼굴이 하나가 아닐경우
-        print('얼굴이 하나가 아님')
+    if len(faces) == 0:
+        print("얼굴 인식 실패!")
         return '0'
 
     face = faces[0]
     face_width = face.right()-face.left()
     face_height = face.bottom()-face.top()
-    face_center = [(face.bottom()+face.top())/2, (face.right()+face.left())/2]
 
     if(face_width < 250 or face_height < 250):
         #얼굴이 너무 작을 경우
+        print("face width, height", face_width, face_height)
         print('얼굴이 작음')
         return '0'
 
@@ -137,21 +134,44 @@ def cropping(img_name):
         ffhq_image_frame = [225, 264, 344, 145]
 
     image_rate = face_width/ffhq_face_size
+    print("face_width", face_width)
+    print("ffhq_image_fram", ffhq_image_frame)
     result_image_frame = [_*image_rate for _ in ffhq_image_frame]
+    print("image_rate", image_rate)
+    print("margin list", result_image_frame)
 
+    print()
     # result image frame [좌, 우, 상, 하 마진 길이]
-    result_image_left = int(face_center[1] - face_width / 2 - result_image_frame[0])
-    result_image_right = int(face_center[1] + face_width / 2 + result_image_frame[1])
-    result_image_top = int(face_center[0] - face_height / 2 - result_image_frame[2])
-    result_image_bottom = int(face_center[0] + face_height / 2 + result_image_frame[3])
+    result_image_left = int(face.left() - result_image_frame[0])
+    result_image_right = int(face.right() + result_image_frame[1])
+    result_image_top = int(face.top() - result_image_frame[2])
+    result_image_bottom = int(face.bottom() + result_image_frame[3])
+
+    if result_image_top < 0:
+        result_image_top = 0
 
     if (result_image_left < 0 or result_image_top < 0 or
             result_image_right > image_width or result_image_bottom > image_height):
         # 얼굴이 너무 한쪽에 치우쳐 있을 때
-        return '0'
+        if result_image_left < 0:
+            result_image_left = 0
+            print('left 가 0보다 작음')
+        if result_image_top < 0:
+            print('top 이 0보다 작음')
+            result_image_top = 0
+        if result_image_right > image_width:
+            result_image_right = image_width
+            print('right가 width 보다 큼')
+        if result_image_bottom > image_height:
+            result_image_bottom = image_height
+            print('bottom 이 heigt 보다 큼')
+        print('얼굴이 치우쳐 있음')
+        #return '0'
 
     result_image = image[result_image_top:result_image_bottom, result_image_left:result_image_right]
     result_image = cv2.resize(result_image, (1024, 1024), interpolation=cv2.INTER_CUBIC)
+
+    cv2.imwrite(os.path.join(root_dir, 'testing_image.jpg'), result_image)
 
     retval, buffer = cv2.imencode('.jpg', result_image)
     result_image_base64 = base64.b64encode(buffer)
@@ -171,24 +191,47 @@ def start_synthesis(img_name):
     with open(source_img, "wb") as f:
         f.write(base64.b64decode(b64_string))
 
+    task = execute_gpu.delay(img_name)
     ##########################################################
 
+    # ## 테스트 안할 때에는 주석 처리
+    # f = request.files['file']
+    # f.save(f.filename)
+    # task = execute_gpu.delay(f.filename)
 
-    task = execute_gpu.delay(img_name)
     print('post return ', task.id)
     return task.id
+# @app.route('/start/<img_name>', methods=['POST'])
+# def start_synthesis(img_name):
+#
+#     ## 테스트할 때는 주석 처리
+#     ##########################################################
+#     b64_string = request.form.get('image')
+#
+#     source_img = os.path.join(source_img_dir, img_name + '.jpg')
+#
+#     with open(source_img, "wb") as f:
+#         f.write(base64.b64decode(b64_string))
+#
+#     return 'testing...'
 
 # 안드로이드 상에서 결과 이미지 확인을 하기 위한 post 함수. 이미지 존재 시 이미지 인코딩 문자열 리턴, 없을 시 '0' 리턴
 @app.route('/result/<img_name>', methods=['POST','GET'])
 def get_result(img_name):
-    if os.path.isfile(os.path.join(result_img_dir, img_name+'_result.png')):
+    if os.path.isfile(os.path.join(result_img_dir, img_name+'.png')):
         with open(os.path.join(result_img_dir, img_name+'.png'), "rb") as img:
             enc_str = base64.b64encode(img.read())
         print('task completed')
         os.remove(os.path.join(result_img_dir, img_name+'.png'))
         return enc_str
-    print('task not completed')
     return '0'
+    # if os.path.isfile(os.path.join(result_img_dir, 'test.png')):
+    #     with open(os.path.join(result_img_dir, 'test.png'), "rb") as img:
+    #         enc_str = base64.b64encode(img.read())
+    #     print('task completed')
+    #     return enc_str
+    # print('task not completed')
+    # return '0'
 
 # gpu 서버 접속, 실행하는 함수
 @celery.task
