@@ -42,6 +42,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 사진을 꾸미는 액티비티.
+ * 다양한 헤어 스티커로 사진을 꾸미고, 'send' 버튼을 눌러 서버로 전송한다.
+ * 헤어스타일은 줌 제스쳐로 확대/축소가 가능하다. 또한 드래그로 위치를 조정한다.
+ */
 public class PhotoViewActivity extends AppCompatActivity {
     private static final String TAG = "PhotoViewActivity";
 
@@ -126,8 +131,6 @@ public class PhotoViewActivity extends AppCompatActivity {
             }
         });
 
-
-
         View.OnTouchListener mTouchListener = new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -165,8 +168,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                         canvas.drawBitmap(background, new Matrix(), null);
                         canvas.drawBitmap(hair, null, hairRect, null);
 
-                        // ISSUE 약간 sticker가 오른쪽 으로 감 (only woman hair)
-//                        photo.setImageBitmap(bitmapOverlay);
+//                        photo.setImageBitmap(bitmapOverlay);  // 꾸며진 사진 볼 수 있음. Test 용
 
                         // HTTP post request - image upload
                         imageId = MyUtil.getRandId(getApplicationContext());
@@ -284,7 +286,15 @@ public class PhotoViewActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    // minho {
+    /**
+     * 꾸며진 사진을 서버로 업로드한다.
+     * 서버는 사진을 받고 인공지능 처리를 시작하며,
+     * 안드로이드는 해당 이미지 처리가 끝났는지 확인하기 위해 백그라운드로 ImageProcessCheckService를 실행시킨다.
+     * 때문에 사용자는 잠시 다른 작업을 할 수 있다.
+     *
+     * @param url       HTTP 요청할 서버 url
+     * @param bitmap    이미지 Bitmap
+     */
     protected void httpPostReqeust(String url, Bitmap bitmap) {
         loading("Image uploading...");
 

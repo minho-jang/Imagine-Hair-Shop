@@ -14,6 +14,10 @@ import android.widget.ImageView;
 import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * LookBook 그리드(grid) 레이아웃 어댑터.
+ * 각 아이템(image) 별로 clickListener 추가.
+ */
 public class GridAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<File> images;
@@ -55,6 +59,9 @@ public class GridAdapter extends BaseAdapter {
                 ImageView iv = new ImageView(context);
                 iv.setImageBitmap(bitmap);
 
+                /**
+                 * 이미지 크게 보여주는 AlertDialog.
+                 */
                 AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
                 alertBuilder.setView(iv);
                 alertBuilder.create().show();

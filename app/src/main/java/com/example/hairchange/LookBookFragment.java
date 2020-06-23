@@ -14,6 +14,9 @@ import androidx.fragment.app.Fragment;
 
 import java.io.File;
 
+/**
+ * 룩북을 보여주는 Fragment
+ */
 public class LookBookFragment extends Fragment {
     public LookBookFragment() {
 
@@ -32,15 +35,8 @@ public class LookBookFragment extends Fragment {
             for(int i = 0; i < files.length; i++) {
                 adapter.addItem(files[i]);
             }
-//            Log.d(TAG, "file count : " +files.length);
-//            Log.d(TAG, "absPath : " + file.getAbsolutePath());
-
         }
 
-
-
-//        Log.i("getItem", adapter.getItem(0)+"");
-//        Log.i("getItem", adapter.getItem(1)+"");
         GridView grid = (GridView)v.findViewById(R.id.gridview);
         grid.setAdapter(adapter);
 

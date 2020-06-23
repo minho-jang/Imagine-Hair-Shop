@@ -25,10 +25,24 @@ import java.util.Random;
 
 import static android.content.Context.ACTIVITY_SERVICE;
 
+/**
+ * 범용적으로 쓰이는 함수.
+ */
 public class MyUtil {
     public final static String TAG = "MyUtil";
+
+    /**
+     * 기기(device)마다 저장되는 고유 아이디 길이
+     */
     private static final int ID_LENGTH = 20;
 
+    /**
+     * 기기(device)마다 저장되는 고유 아이디를 리턴.
+     * 파일로 저장되며 없으면 새로 생성.
+     *
+     * @param context   이 함수를 호출한 액티비티의 Context
+     * @return          고유 아이디.
+     */
     public static String getRandId(Context context) {
         String randid = "";
 
@@ -85,8 +99,12 @@ public class MyUtil {
         return randid;
     }
 
-    // input : Strings
-    // output : File path consisted of input Strings
+    /**
+     * 여러 문자열들에 대해 하나로 묶어 경로를 리턴.
+     *
+     * @param paths     Strings
+     * @return          File path consisted of input Strings
+     */
     public static String combinePaths(String ... paths) {
         if ( paths.length == 0)
             return "";
@@ -102,8 +120,14 @@ public class MyUtil {
         return combined.getPath();
     }
 
-    // input : Image file path
-    // output : Image file uri
+
+    /**
+     * 파일경로부터 파일의 URI를 가져온다.
+     *
+     * @param context   이 함수를 호출한 액티비티 Context
+     * @param absPath   이미지 절대 경로
+     * @return          이미지 URI
+     */
     public static Uri getImageContentUri(Context context, String absPath) {
         Cursor cursor = context.getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -123,20 +147,19 @@ public class MyUtil {
         }
     }
 
+    /**
+     * 이미지 회전.
+     *
+     * @param source    회전할 이미지 Bitmap
+     * @param angle     회전시킬 각도
+     * @return          회전된 이미지
+     */
     public static Bitmap rotateImage(Bitmap source, float angle) {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(),
                 matrix, true);
     }
-
-//    public static String getPathFromUri(Context context, Uri uri){
-//        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null );
-//        cursor.moveToNext();
-//        String path = cursor.getString( cursor.getColumnIndex( "_data" ) );
-//        cursor.close();
-//        return path;
-//    }
 
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access

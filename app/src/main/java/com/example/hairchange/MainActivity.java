@@ -48,6 +48,11 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 메인 화면 액티비티.
+ * 기본적으로 가이드를 보여주고, 룩북을 클릭하면 본인이 시도했었던 사진을 볼 수 있다.
+ * Floating Button '+'을 통해 사진을 선택한다.
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
@@ -78,25 +83,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        queue = Volley.newRequestQueue(this);
+        queue = Volley.newRequestQueue(this);   // HTTP Request Queue
 
         guideFragment = new GuideFragment();
         lookBookFragment = new LookBookFragment();
 
-//        FragmentManager fm = getSupportFragmentManager();
-//        FragmentTransaction fragmentTransaction = fm.beginTransaction();
-//        fragmentTransaction.add(R.id.main_fragment, guideFragment);
-//        fragmentTransaction.commit();
-
+        // 처음 메인화면 기본값은 가이드 Fragment
         if(findViewById(R.id.control) != null) {
-            if(savedInstanceState != null) {
+            if(savedInstanceState != null)
                 return;
-            }
 
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.control, guideFragment).commit();
         }
 
+        // Floating Button Setting {
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
 
@@ -157,7 +158,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(onClickListener);
         fab1.setOnClickListener(onClickListener);
         fab2.setOnClickListener(onClickListener);
+        // } Floating Button Setting
 
+        // Bottom Navigation Setting {
         bottomNavigationView = findViewById(R.id.contents_bottom);
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -166,42 +169,30 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.action_one:
                         transaction.replace(R.id.control, guideFragment);
-//                        transaction.addToBackStack(null);
                         transaction.commit();
-//                        GuideFragment guideFragment = GuideFragment.newInstance();
-//                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.main_fragment, guideFragment)
-//                                .commit();
-
-
                         break;
+
                     case R.id.action_three:
                         transaction.replace(R.id.control, lookBookFragment);
-//                        transaction.addToBackStack(null);
                         transaction.commit();
-//                        Intent resultViewIntent = new Intent(MainActivity.this, ResultActivity.class);
-//                        startActivity(resultViewIntent);
-//                        LookBookFragment lookBookFragment = LookBookFragment.newInstance();
-//                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.main_fragment, lookBookFragment)
-//                                .commit();
                         break;
                 }
                 return true;
             }
         });
+        // } Bottom Navigation Setting
     }
 
+    // Call user's device Gallery
     private void callGallery() {
-        // Call user's device gallery
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
         startActivityForResult(intent, PICK_FROM_GALLERY);
     }
 
+    // Call user's device Camera
     private void callCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         // Create temporary file to hold user's image
         String url = System.currentTimeMillis() + "_hairchange.jpg";
         mImageCaptureUri = FileProvider.getUriForFile(getApplicationContext(), "com.example.hairchange.fileprovider", new File(Environment.getExternalStorageDirectory(), url));
@@ -236,6 +227,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             }
+
             case REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
@@ -251,26 +243,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 카메라 또는 갤러리에 접근 후 결과 처리.
+     * 요청코드를 비교하여 적절한 코드를 실행한다.
+     * 카메라 또는 갤러리로부터 온 사진은 자르기 위해 서버에 전송한다.
+     * 크롭되어 온 사진은 다음 액티비티로 전달한다.
+     *
+     * @param requestCode   요청 코드
+     * @param resultCode    결과 코드
+     * @param data          결과 데이터
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // 요청 코드를 비교하기 전, 사용자가 취소할 경우 또는 결과에 있어서 에러가 있는 경우
         if (resultCode != RESULT_OK) {
             Toast.makeText(this, "CANCEL", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // 카메라 요청에 대한 응답이 왔으면
         if (requestCode == PICK_FROM_CAMERA) {
             // Already photo uri is in "mImageCaptureUri"
             cropImage(mImageCaptureUri);
         }
+        // 갤러리 요청에 대한 응답이 왔으면
         else if (requestCode == PICK_FROM_GALLERY) {
-            mImageCaptureUri = data.getData();
-            cropImage(mImageCaptureUri);
-        }
+        mImageCaptureUri = data.getData();
+        cropImage(mImageCaptureUri);
     }
+}
 
-    // minho {
+    /**
+     * 이미지를 자르기 위해 이미지 서버로 전송.
+     * AI 기술이 적용되기 위해 input 형식을 맞추는 작업.
+     *
+     * @param imageFile
+     */
     protected void cropImage(Uri imageFile) {
         loading("Image cropping...");
 
@@ -288,10 +298,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // bitmap rotate
-
-//        String photoPath = MyUtil.getPathFromUri(getApplicationContext(), imageFile);
-//        Log.d(TAG, "photoPath: " + photoPath);
+        // 이미지 회전 이슈 해결 {
         ExifInterface ei = null;
         try {
             InputStream is = getContentResolver().openInputStream(imageFile);
@@ -324,11 +331,9 @@ public class MainActivity extends AppCompatActivity {
             default:
                 rotatedBitmap = bitmap;
         }
+        // } 이미지 회전 이슈 해결
 
-//        File file = new File(imageFile.getPath());
-//        ImageDecoder.Source source = ImageDecoder.createSource(file);
-//        Bitmap bitmap = ImageDecoder.decodeBitmap(source);
-
+        // HTTP POST request to Server
         String imageId = MyUtil.getRandId(getApplicationContext());
         String url = SERVER_BASE_URL + "crop/" + imageId;
 
@@ -338,8 +343,8 @@ public class MainActivity extends AppCompatActivity {
         byte[] imageBytes = baos.toByteArray();
         final String imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-        // Request : image crop
-        // Response: just OK.
+        // Request : image
+        // Response: cropped image
         Log.d(TAG, "Crop Request Start");
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
@@ -448,5 +453,4 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "한 번 더 누르면 종료합니다", Toast.LENGTH_SHORT).show();
         }
     }
-    // minho }
 }

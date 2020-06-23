@@ -24,7 +24,7 @@ import java.io.FileOutputStream;
 
 /**
  * 이미지 처리를 위해 HTTP 요청을 보내고
- * response를 받아서 결과 사진을 주는 서비스
+ * response를 받아서 결과 사진을 주는 서비스 (Background thread)
  */
 public class ImageProcessCheckService extends IntentService {
     private static final String TAG = "ImageProcessCheckService";

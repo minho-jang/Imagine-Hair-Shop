@@ -31,8 +31,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
-
-
+        
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,8 +43,6 @@
         <activity android:name=".PhotoViewActivity" />
         <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
-        <activity android:name=".ResultActivity"></activity>
-
 
         <service android:name=".ImageProcessCheckService" />
         <service android:name="ImageProcessCheckJobService"

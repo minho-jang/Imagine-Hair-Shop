@@ -29,6 +29,10 @@ import com.github.chrisbanes.photoview.PhotoView;
 
 import java.util.ArrayList;
 
+/**
+ * 사진 꾸미는 화면에서 헤어스타일을 보여주는 리사이클러뷰(RecyclerView) 어댑터.
+ * 드래그 앤 드랍이 가능하게 함.
+ */
 public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.ItemViewHolder>{
 //    private ArrayList<String> mData;
     private ArrayList<Integer> mData;
@@ -36,31 +40,21 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
 
     public class ItemViewHolder extends RecyclerView.ViewHolder {
         protected ImageView imageItem1;
-        private static final String IMAGEVIEW_TAG = "icon bitmap";
- //       protected ImageView imageItem2;
-//        protected ImageView imageItem3;
-//        protected ImageView imageItem4;
         View view;
+
         public ItemViewHolder(View itemView) {
             super(itemView);
             this.view = itemView;
 
             imageItem1 = view.findViewById(R.id.image_item1);
-//            imageItem2 = view.findViewById(R.id.image_item2);
-//            imageItem3 = view.findViewById(R.id.image_item3);
-//            imageItem4 = view.findViewById(R.id.image_item4);
-
 
             View.OnTouchListener mTouchListener = new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if(event.getAction() == MotionEvent.ACTION_DOWN) {
                         ClipData clip = ClipData.newPlainText("","");
-
                         view.startDrag(clip, new CanvasShadow(view, (int)event.getX(), (int)event.getY()), view, 0);
-
 //                        view.setVisibility(View.INVISIBLE);
-
                         return true;
                     }
                     return false;
@@ -74,32 +68,31 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
                     v.invalidate();
                     switch(event.getAction()) {
                         case DragEvent.ACTION_DRAG_STARTED:
-
                             return true;
+
                         case DragEvent.ACTION_DRAG_ENTERED:
-
                             return true;
+
                         case DragEvent.ACTION_DRAG_EXITED:
                             tag = (int)v.getTag();
 
                             Log.i("Tag", tag+"");
                             Log.i("pos", getAdapterPosition()+"");
                             return true;
+
                         case DragEvent.ACTION_DROP:
-                            /*
-                            View view = (View)event.getLocalState();
-                            Log.i("localstate", event.getLocalState().toString());
-                            ViewGroup viewGroup = (ViewGroup) view.getParent();
-                            viewGroup.removeView(view);
-
-                            FrameLayout containView;
-
-                            containView = (FrameLayout) v;
-                            containView.addView(view);
-                            view.setVisibility(View.VISIBLE);
-                            */
-
+//                            View view = (View)event.getLocalState();
+//                            Log.i("localstate", event.getLocalState().toString());
+//                            ViewGroup viewGroup = (ViewGroup) view.getParent();
+//                            viewGroup.removeView(view);
+//
+//                            FrameLayout containView;
+//
+//                            containView = (FrameLayout) v;
+//                            containView.addView(view);
+//                            view.setVisibility(View.VISIBLE);
                             return true;
+
                         case DragEvent.ACTION_DRAG_ENDED:
                             if(event.getResult() == false) {
                                 ((View)(event.getLocalState())).setVisibility(View.VISIBLE);
@@ -113,7 +106,6 @@ public class ImageItemAdapter extends RecyclerView.Adapter<ImageItemAdapter.Item
 //                            sticker.setImageResource((int)v.getTag());
                             Log.i("Tag", tag+"");
                             sticker.setImageResource(tag);
-
 
 //                            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) sticker.getLayoutParams();
 //                            params.width = 300;

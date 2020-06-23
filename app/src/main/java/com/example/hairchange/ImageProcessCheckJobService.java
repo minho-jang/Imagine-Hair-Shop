@@ -23,10 +23,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 /**
- * developing...
+ * 미구현.
  *
  * IntentService가 API 30에서 deprecated라서
- * JobIntentService로 마이그레이션 했는데 잘 되지 않는다.
+ * JobIntentService로 마이그레이션 진행중.
  */
 public class ImageProcessCheckJobService extends JobIntentService {
     private static final String TAG = "ImageProcessCheckJobService";

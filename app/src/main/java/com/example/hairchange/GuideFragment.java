@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 
+/**
+ * 가이드를 보여주는 Fragment.
+ */
 public class GuideFragment extends Fragment {
     public GuideFragment() {
 
