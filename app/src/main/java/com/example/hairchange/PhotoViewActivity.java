@@ -91,11 +91,11 @@ public class PhotoViewActivity extends AppCompatActivity {
 
         // Set Adapter
         adapter = new ImageItemAdapter();
-        adapter.addItem(R.drawable.man1);
+//        adapter.addItem(R.drawable.man1);
         adapter.addItem(R.drawable.man2);
         adapter.addItem(R.drawable.man3);
         adapter.addItem(R.drawable.man4);
-        adapter.addItem(R.drawable.man5);
+//        adapter.addItem(R.drawable.man5);
         adapter.addItem(R.drawable.man6);
         adapter.addItem(R.drawable.man7);
         adapter.addItem(R.drawable.man8);
@@ -250,11 +250,11 @@ public class PhotoViewActivity extends AppCompatActivity {
             woman.setSelected(false);
             theOthers.setSelected(false);
 
-            adapter.addItem(R.drawable.man1);
+//            adapter.addItem(R.drawable.man1);
             adapter.addItem(R.drawable.man2);
             adapter.addItem(R.drawable.man3);
             adapter.addItem(R.drawable.man4);
-            adapter.addItem(R.drawable.man5);
+//            adapter.addItem(R.drawable.man5);
             adapter.addItem(R.drawable.man6);
             adapter.addItem(R.drawable.man7);
             adapter.addItem(R.drawable.man8);
@@ -265,7 +265,7 @@ public class PhotoViewActivity extends AppCompatActivity {
             adapter.addItem(R.drawable.woman1);
             adapter.addItem(R.drawable.woman2);
             adapter.addItem(R.drawable.woman3);
-            adapter.addItem(R.drawable.woman4);
+//            adapter.addItem(R.drawable.woman4);
             adapter.addItem(R.drawable.woman5);
             adapter.addItem(R.drawable.woman6);
             adapter.addItem(R.drawable.woman7);
