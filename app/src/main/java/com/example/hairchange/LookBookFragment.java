@@ -13,6 +13,7 @@ import android.widget.GridView;
 import androidx.fragment.app.Fragment;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * 룩북을 보여주는 Fragment
@@ -30,10 +31,13 @@ public class LookBookFragment extends Fragment {
 
         File dirResult = new File(MyUtil.combinePaths(v.getContext().getFilesDir().getPath(), "results"));
         File[] files = dirResult.listFiles();
+        if (files != null) {
+            Arrays.sort(files);
 
-        if (files != null && files.length != 0){
-            for(int i = 0; i < files.length; i++) {
-                adapter.addItem(files[i]);
+            if (files.length != 0){
+                for (File file : files) {
+                    adapter.addItem(file);
+                }
             }
         }
 
