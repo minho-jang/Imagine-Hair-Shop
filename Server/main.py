@@ -10,7 +10,10 @@ from paramiko import SSHClient
 from FaceSwap import face_main
 from celery import Celery
 from dlib import get_frontal_face_detector as face_detector
-
+from skimage import data
+from skimage import exposure
+from skimage.exposure import match_histograms
+from PIL import Image, ImageEnhance
 
 # celery 동작 명령어
 # celery worker -A main.celery --loglevel=INFO --pool=solo
@@ -18,7 +21,7 @@ from dlib import get_frontal_face_detector as face_detector
 #셀러리 객체를 만들어서 셀러리 객체에 비동기처리를 진행한다.
 def make_celery(app):
     celery = Celery(
-        "flaskblog",
+        "main",
         backend=app.config['CELERY_RESULT_BACKEND'],
         broker=app.config['CELERY_BROKER_URL']
     )
@@ -55,7 +58,45 @@ source_img_dir = os.path.join(root_dir, 'source-image')
 target_img_dir = os.path.join(root_dir, 'target-image')
 result_img_dir = os.path.join(root_dir, 'result-image')
 
-def swap(source_img,target_img,result_img):  # Do face swap & return result image
+#PIL image를 numpy 형태로
+def PIL2numpy(image):
+    return np.asarray(image)
+
+def numpy2PIL(image):
+    return Image.fromarray(np.uint8(image))
+
+# 히스토그램 매칭
+def histogram_specification(reference, image):
+    matched = match_histograms(image, reference, multichannel=True)
+    '''
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(8, 3),
+                                        sharex=True, sharey=True)
+    for aa in (ax1, ax2, ax3):
+        aa.set_axis_off()
+
+    ax1.imshow(image)
+    ax1.set_title('Source')
+    ax2.imshow(reference)
+    ax2.set_title('Reference')
+    ax3.imshow(matched)
+    ax3.set_title('Matched')
+
+    plt.tight_layout()
+    plt.show()
+    '''
+    return matched
+
+# 이미지를 밝게 만들어준다.
+def image_brighter(image, bright_factor=1.2):
+    image = numpy2PIL(image)
+    enhancer = ImageEnhance.Brightness(image)
+
+    im_out = enhancer.enhance(bright_factor)
+    im_out = PIL2numpy(im_out)
+    return im_out
+
+# Do face swap & return result image
+def swap(source_img,target_img,result_img):
 
     image_info = {}
 
@@ -77,6 +118,7 @@ def cropping(img_name):
     post_request_image_bytes = base64.b64decode(b64_string)
 
     image = cv2.imdecode(np.frombuffer(post_request_image_bytes, np.uint8), -1)
+    image = image_brighter(image)
 
     image_height, image_width = image.shape[:2]
     print("image height, width", image_height, image_width)
@@ -177,6 +219,7 @@ def start_synthesis(img_name):
     with open(source_img, "wb") as f:
         f.write(base64.b64decode(b64_string))
 
+    print("gpu run command")
     task = execute_gpu.delay(img_name)
 
 
@@ -200,12 +243,15 @@ def get_result(img_name):
 def execute_gpu(img_name):
     client = SSHClient()
     client.load_system_host_keys()
+    print("gpu server connection..")
     client.connect(host, username=user, port=port, password=password)
+    print("gpu server connection Ok.")
     sftp = client.open_sftp()
 
     source_img = os.path.join(source_img_dir, img_name + '.jpg')
     target_img = os.path.join(target_img_dir, img_name + '.png')
     result_img = os.path.join(result_img_dir, img_name + '.png')
+
 
     sftp.put(source_img, STYLEGAN_FFHQ_DIR + img_name)
 
