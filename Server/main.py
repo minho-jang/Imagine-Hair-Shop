@@ -12,7 +12,6 @@ from celery import Celery
 from dlib import get_frontal_face_detector as face_detector
 from skimage import data
 from skimage import exposure
-from skimage.exposure import match_histograms
 from PIL import Image, ImageEnhance
 
 # celery 동작 명령어
@@ -65,27 +64,6 @@ def PIL2numpy(image):
 def numpy2PIL(image):
     return Image.fromarray(np.uint8(image))
 
-# 히스토그램 매칭
-def histogram_specification(reference, image):
-    matched = match_histograms(image, reference, multichannel=True)
-    '''
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(8, 3),
-                                        sharex=True, sharey=True)
-    for aa in (ax1, ax2, ax3):
-        aa.set_axis_off()
-
-    ax1.imshow(image)
-    ax1.set_title('Source')
-    ax2.imshow(reference)
-    ax2.set_title('Reference')
-    ax3.imshow(matched)
-    ax3.set_title('Matched')
-
-    plt.tight_layout()
-    plt.show()
-    '''
-    return matched
-
 # 이미지를 밝게 만들어준다.
 def image_brighter(image, bright_factor=1.2):
     image = numpy2PIL(image)
@@ -103,9 +81,6 @@ def swap(source_img,target_img,result_img):
     image_info['src'] = source_img
     image_info['dst'] = target_img
     image_info['out'] = result_img
-    image_info['warp_2d'] = False
-    image_info['correct_color'] = True
-    image_info['no_debug_window'] = True
 
     face_main.faceswap(image_info)
 
@@ -141,21 +116,15 @@ def cropping(img_name):
         return '0'
 
     # ffhq image 얼굴 크기
-    ffhq_face_size = 0
+    ffhq_face_size = 535
 
     # ffhq image frame [좌, 우, 상, 하 마진 길이]
-    ffhq_image_frame = []
-
-    # 변경할 비율
-    image_change_rate = 0
+    ffhq_image_frame = [225, 264, 344, 145]
 
     # 각 숫자는 ffhq의 data frame 값
     if (face_width >= 500):
         ffhq_face_size = 642
         ffhq_image_frame = [199, 183, 270, 112]
-    else:
-        ffhq_face_size = 535
-        ffhq_image_frame = [225, 264, 344, 145]
 
     #기존의 data set과 현재 이미지의 비율을 구한다.
     image_rate = face_width/ffhq_face_size
@@ -165,7 +134,6 @@ def cropping(img_name):
     print("image_rate", image_rate)
     print("margin list", result_image_frame)
 
-    print()
     # result image frame [좌, 우, 상, 하 마진 길이]
     result_image_left = int(face.left() - result_image_frame[0])
     result_image_right = int(face.right() + result_image_frame[1])
@@ -180,18 +148,13 @@ def cropping(img_name):
             result_image_right > image_width or result_image_bottom > image_height):
         # 얼굴이 너무 한쪽에 치우쳐 있을 때
         if result_image_left < 0:
-            result_image_left = 0
             print('left 가 0보다 작음')
         if result_image_top < 0:
             print('top 이 0보다 작음')
-            result_image_top = 0
         if result_image_right > image_width:
-            result_image_right = image_width
             print('right가 width 보다 큼')
         if result_image_bottom > image_height:
-            result_image_bottom = image_height
             print('bottom 이 heigt 보다 큼')
-        print('얼굴이 치우쳐 있음')
         return '0'
 
     #해당 margin 비율에 맞게 자르고 upsampling 진행
