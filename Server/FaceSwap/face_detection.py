@@ -3,11 +3,7 @@ import os
 import dlib
 import numpy as np
 
-## Face detection
 def face_detection(img,upsample_times=1):
-    # Ask the detector to find the bounding boxes of each face. The 1 in the
-    # second argument indicates that we should upsample the image 1 time. This
-    # will make everything bigger and allow us to detect more faces.
     detector = dlib.get_frontal_face_detector()
     faces = detector(img, upsample_times)
 
@@ -17,7 +13,8 @@ ROOT_PATH = os.getcwd() + u'/FaceSwap'
 PREDICTOR_PATH = 'models/shape_predictor_68_face_landmarks.dat'
 PREDICTOR_PATH = ROOT_PATH + '/' + PREDICTOR_PATH
 predictor = dlib.shape_predictor(PREDICTOR_PATH)
-## Face and points detection
+
+# Face and points detection
 def face_points_detection(img, bbox:dlib.rectangle):
     # Get the landmarks/parts for the face in box d.
     shape = predictor(img, bbox)

@@ -4,22 +4,18 @@ import os
 import base64
 import cv2
 import numpy as np
-import skimage
-import statistics
 from flask import Flask, render_template
 from flask_restful import Api, request
 from paramiko import SSHClient
 from FaceSwap import face_main
 from celery import Celery
 from dlib import get_frontal_face_detector as face_detector
-from dlib import shape_predictor as shape_predictor
-from skimage.draw import polygon
-from scipy.spatial import ConvexHull
 
 
 # celery 동작 명령어
-# celery worker -A flaskblog.celery --loglevel=INFO --pool=solo
+# celery worker -A main.celery --loglevel=INFO --pool=solo
 
+#셀러리 객체를 만들어서 셀러리 객체에 비동기처리를 진행한다.
 def make_celery(app):
     celery = Celery(
         "flaskblog",
@@ -35,7 +31,6 @@ def make_celery(app):
     celery.Task = ContextTask
     return celery
 
-# 기존 코드
 app = Flask(__name__)
 
 # celery를 위한 추가 코드
@@ -75,53 +70,6 @@ def swap(source_img,target_img,result_img):  # Do face swap & return result imag
 
     return result_img
 
-
-#custom face swap code(source img : origin, target_img : stygan image, result_img : swap result image)
-def swap_custom(source_img_path = '/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/origin2.png',
-                target_img_path = '/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/target2.png',
-                result_img_path = '/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/result2.png'):
-    predictor = shape_predictor('shape_predictor_68_face_landmarks.dat')
-
-    origin = cv2.imread(source_img_path)
-    target = cv2.imread(target_img_path)
-    origin_mask = np.zeros(origin.shape, origin.dtype)
-
-    #detect landmarks
-    faces = face_detector()(origin)[0]
-    shape = predictor(origin, faces)
-    landmarks = np.array([[p.x, p.y] for p in shape.parts()])
-    outline = landmarks[[*range(17), *range(26, 16, -1)]]
-
-    poly = np.array(outline)
-
-    cv2.fillPoly(origin_mask, [poly], (255, 255, 255))
-    center = (statistics.mean(outline[:, 0]), statistics.mean(outline[:, 1])+15)
-
-    cv2.imwrite('/home/rtos/PycharmProjects/capstone/jaranara-meori-/Server/mask.png', origin_mask)
-
-    result = cv2.seamlessClone(origin, target, origin_mask, center, cv2.NORMAL_CLONE)
-    cv2.imwrite(result_img_path, result)
-    return result
-
-# flask 내에서 테스트를 하기 위한 라우트. test.png 로 post 요청 보냄
-@app.route('/')
-def f1():
-    return render_template('index.html')
-
-## 스왑만 하고싶을때 쓰삼
-@app.route('/swap/<img_name>')
-def onlySwap(img_name):
-    sour_name = os.path.join(source_img_dir, img_name + '.jpg')
-    tar_name = os.path.join(target_img_dir, img_name + '.png')
-    ret_name = os.path.join(result_img_dir, img_name + '.png')
-
-    swap(sour_name, tar_name, ret_name)
-
-    return render_template("swap.html",
-                           sour_name='images/source-image/' + img_name + '.jpg',
-                           tar_name='images/target-image/' + img_name + '.png',
-                           ret_name='images/result-image/' + img_name + '.png')
-
 #처음 전송받은 이미지 crop
 @app.route('/crop/<img_name>', methods=['POST'])
 def cropping(img_name):
@@ -133,6 +81,7 @@ def cropping(img_name):
     image_height, image_width = image.shape[:2]
     print("image height, width", image_height, image_width)
 
+    #얼굴 탐지
     faces = face_detector()(image)
 
     if len(faces) == 0:
@@ -166,6 +115,7 @@ def cropping(img_name):
         ffhq_face_size = 535
         ffhq_image_frame = [225, 264, 344, 145]
 
+    #기존의 data set과 현재 이미지의 비율을 구한다.
     image_rate = face_width/ffhq_face_size
     print("face_width", face_width)
     print("ffhq_image_fram", ffhq_image_frame)
@@ -183,6 +133,7 @@ def cropping(img_name):
     if result_image_top < 0:
         result_image_top = 0
 
+    #얼굴을 주위로 margin이 부족한지 파악한다.
     if (result_image_left < 0 or result_image_top < 0 or
             result_image_right > image_width or result_image_bottom > image_height):
         # 얼굴이 너무 한쪽에 치우쳐 있을 때
@@ -199,13 +150,15 @@ def cropping(img_name):
             result_image_bottom = image_height
             print('bottom 이 heigt 보다 큼')
         print('얼굴이 치우쳐 있음')
-        #return '0'
+        return '0'
 
+    #해당 margin 비율에 맞게 자르고 upsampling 진행
     result_image = image[result_image_top:result_image_bottom, result_image_left:result_image_right]
     result_image = cv2.resize(result_image, (1024, 1024), interpolation=cv2.INTER_CUBIC)
 
     cv2.imwrite(os.path.join(root_dir, 'testing_image.jpg'), result_image)
 
+    #image base64 encoding
     retval, buffer = cv2.imencode('.jpg', result_image)
     result_image_base64 = base64.b64encode(buffer)
 
@@ -225,28 +178,10 @@ def start_synthesis(img_name):
         f.write(base64.b64decode(b64_string))
 
     task = execute_gpu.delay(img_name)
-    ##########################################################
 
-    # ## 테스트 안할 때에는 주석 처리
-    # f = request.files['file']
-    # f.save(f.filename)
-    # task = execute_gpu.delay(f.filename)
 
     print('post return ', task.id)
     return task.id
-# @app.route('/start/<img_name>', methods=['POST'])
-# def start_synthesis(img_name):
-#
-#     ## 테스트할 때는 주석 처리
-#     ##########################################################
-#     b64_string = request.form.get('image')
-#
-#     source_img = os.path.join(source_img_dir, img_name + '.jpg')
-#
-#     with open(source_img, "wb") as f:
-#         f.write(base64.b64decode(b64_string))
-#
-#     return 'testing...'
 
 # 안드로이드 상에서 결과 이미지 확인을 하기 위한 post 함수. 이미지 존재 시 이미지 인코딩 문자열 리턴, 없을 시 '0' 리턴
 @app.route('/result/<img_name>', methods=['POST','GET'])
@@ -258,13 +193,7 @@ def get_result(img_name):
         os.remove(os.path.join(result_img_dir, img_name+'.png'))
         return enc_str
     return '0'
-    # if os.path.isfile(os.path.join(result_img_dir, 'test.png')):
-    #     with open(os.path.join(result_img_dir, 'test.png'), "rb") as img:
-    #         enc_str = base64.b64encode(img.read())
-    #     print('task completed')
-    #     return enc_str
-    # print('task not completed')
-    # return '0'
+
 
 # gpu 서버 접속, 실행하는 함수
 @celery.task

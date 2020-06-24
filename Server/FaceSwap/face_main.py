@@ -7,18 +7,12 @@ from FaceSwap.face_detection import select_face
 from FaceSwap.face_swap import face_swap
 
 def faceswap(args):
-    # Read images
     src_img = cv2.imread(args['src'])
     dst_img = cv2.imread(args['dst'])
 
-    # Select src face
+    #얼굴 선택
     src_points, src_shape, src_face = select_face(src_img)
-    # Select dst face
     dst_points, dst_shape, dst_face = select_face(dst_img)
-
-    if src_points is None or dst_points is None:
-        print('Detect 0 Face !!!')
-        exit(-1)
 
     output = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img, args)
 
@@ -28,13 +22,6 @@ def faceswap(args):
 
     cv2.imwrite(args['out'], output)
 
-    ##For debug
-    if not args['no_debug_window']:
-        cv2.imshow("From", dst_img)
-        cv2.imshow("To", output)
-        cv2.waitKey(0)
-
-        cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='FaceSwapApp')
