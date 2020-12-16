@@ -1,4 +1,4 @@
-# 상상이발소 (Imagine-Hair-Shop)
+# Imagine-Hair-Shop (상상이발소)
 헤어스타일 시뮬레이션 앱
 
 > 경기대학교 컴퓨터공학부 캡스톤디자인 <br>
@@ -13,6 +13,8 @@
 <img src="android/images/before_styling2.jpg" width="32%">  <img src="android/images/after_styling.jpg" width="32%">  <img src="android/images/after_process.jpg" width="32%">
 
 ## YouTube
-https://www.youtube.com/watch?v=IcBrkL0-9xU
+- https://www.youtube.com/watch?v=IcBrkL0-9xU
 
-
+## References
+- https://github.com/NVlabs/stylegan2
+- https://github.com/wuhuikai/FaceSwap
