@@ -1,4 +1,4 @@
-# Imagine-Hair-Shop
+# 상상이발소 (Imagine-Hair-Shop)
 헤어스타일 시뮬레이션 앱
 
 > 경기대학교 컴퓨터공학부 캡스톤디자인 <br>
